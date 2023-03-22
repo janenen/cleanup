@@ -115,7 +115,7 @@ class CSVgen:
     @staticmethod
     def makeCSV(match, filepath, filename):
         outdir = os.getcwd()
-        newpath = os.path.join(outdir, filepath)
+        newpath = os.path.join(outdir,"output", filepath)
         if not os.path.exists(newpath):
             os.makedirs(newpath)
         testfilename = f"{filename}.csv"
@@ -397,7 +397,7 @@ class PDFgen:
 
             PDFgen.write_extended_analysis(match, extended, pdf, directory)
 
-        newpath = os.path.join(outdir, filepath, match.scheibentyp)
+        newpath = os.path.join(outdir,"output", filepath, match.scheibentyp)
         if not os.path.exists(newpath):
             os.makedirs(newpath)
         testfilename = f"{filename}.pdf"

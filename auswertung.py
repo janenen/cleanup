@@ -2,7 +2,7 @@ import tkinter as tk
 import sys
 import os
 
-from control_frame import ControlFrame
+from ui.frames.control_frame import ControlFrame
 
 
 class App(tk.Tk):
@@ -22,7 +22,7 @@ if __name__ == "__main__":
     except Exception:
         base_path = os.path.abspath(".")
     app = App()
-    app.iconbitmap(os.path.join(base_path, "auswertung.ico"))
+    app.iconbitmap(os.path.join(base_path, "ui","logo.ico"))
     try:
         import pyi_splash
 

@@ -4,14 +4,14 @@ import serial
 import serial.tools.list_ports
 import configparser
 from shot import Match
-from select_file_frame import SelectFileFrame
-from select_user_frame import SelectUserFrame
-from fsk_frame import FSKFrame
-from reading_frame import ReadingFrame
-from settings_frame import SettingsFrame
-from select_port_frame import SelectPortFrame
-from result_frame import ResultFrame
-from string_frame import StringFrame
+from ui.frames.select_file_frame import SelectFileFrame
+from ui.frames.select_user_frame import SelectUserFrame
+from ui.frames.fsk_frame import FSKFrame
+from ui.frames.reading_frame import ReadingFrame
+from ui.frames.settings_frame import SettingsFrame
+from ui.frames.select_port_frame import SelectPortFrame
+from ui.frames.result_frame import ResultFrame
+from ui.frames.string_frame import StringFrame
 
 # from analysis_frame import AnalysisFrame
 
