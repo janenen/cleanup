@@ -2,3 +2,5 @@ schuetzen.ini
 __pycache__
 ui/frames/__pycache__
 output
+build
+dist
