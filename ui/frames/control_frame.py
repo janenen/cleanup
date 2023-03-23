@@ -142,7 +142,7 @@ class ControlFrame(ttk.Frame):
         self.quelle = "maschine"
         self.inputfile = ""
         self.fsk = False
-        self.inputstring=""
+        self.inputstring = ""
 
     def change_frame(self, back=False):
         frame = self.frames[self.nextframe]

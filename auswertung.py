@@ -22,7 +22,7 @@ if __name__ == "__main__":
     except Exception:
         base_path = os.path.abspath(".")
     app = App()
-    app.iconbitmap(os.path.join(base_path, "ui","logo.ico"))
+    app.iconbitmap(os.path.join(base_path, "ui", "logo.ico"))
     try:
         import pyi_splash
 

@@ -46,6 +46,7 @@ class JSONgen:
     def makeCSV(match, filepath, filename):
         pass
 
+
 class QR:
     @staticmethod
     def getMatch(match, str):
@@ -62,20 +63,23 @@ class QR:
                 .replace("I", "2.")
                 .replace("J", "1.")
             )
-        y=str[4:8]
-        m=str[2:4]
-        d=str[0:2]
-        match.datum=f"{d}.{m}.{y}"
-        match.scheibentyp=str[8:10]
-        str_shots=str[10:]
-        shotlist=[]
-        regex_string="(?P<ring>\D)(?P<tenth>\d)(?P<teiler>\d+)(?P<x>[+-]\d+)(?P<y>[+-]\d+)"
-        regex=re.compile(regex_string)
-        for shot in re.finditer(regex,str_shots):
-            print("Ringe:" + unmap_ring(shot["ring"])+shot["tenth"])
+
+        y = str[4:8]
+        m = str[2:4]
+        d = str[0:2]
+        match.datum = f"{d}.{m}.{y}"
+        match.scheibentyp = str[8:10]
+        str_shots = str[10:]
+        shotlist = []
+        regex_string = (
+            "(?P<ring>\D)(?P<tenth>\d)(?P<teiler>\d+)(?P<x>[+-]\d+)(?P<y>[+-]\d+)"
+        )
+        regex = re.compile(regex_string)
+        for shot in re.finditer(regex, str_shots):
+            print("Ringe:" + unmap_ring(shot["ring"]) + shot["tenth"])
             shotlist.append(
                 Shot(
-                    ringe=float(unmap_ring(shot["ring"])+shot["tenth"]),
+                    ringe=float(unmap_ring(shot["ring"]) + shot["tenth"]),
                     teiler=int(shot["teiler"]),
                     x=int(shot["x"]),
                     y=int(shot["y"]),
@@ -115,7 +119,7 @@ class CSVgen:
     @staticmethod
     def makeCSV(match, filepath, filename):
         outdir = os.getcwd()
-        newpath = os.path.join(outdir,"output", filepath)
+        newpath = os.path.join(outdir, "output", filepath)
         if not os.path.exists(newpath):
             os.makedirs(newpath)
         testfilename = f"{filename}.csv"
@@ -397,7 +401,7 @@ class PDFgen:
 
             PDFgen.write_extended_analysis(match, extended, pdf, directory)
 
-        newpath = os.path.join(outdir,"output", filepath, match.scheibentyp)
+        newpath = os.path.join(outdir, "output", filepath, match.scheibentyp)
         if not os.path.exists(newpath):
             os.makedirs(newpath)
         testfilename = f"{filename}.pdf"
@@ -480,7 +484,7 @@ class PDFgen:
             )
             p.savefig(directory + "\\boxplot_y.png")
             pdf.image(directory + "\\boxplot_y.png", 10, 20, 150)
-            qrstr=PDFgen.get_compressed_string(match)
+            qrstr = PDFgen.get_compressed_string(match)
             print(len(qrstr))
             if len(qrstr) < 4296:
                 qr = qrcode.make(qrstr)
@@ -510,8 +514,8 @@ class PDFgen:
                 str(s.teiler),
                 str(s.x),
                 str(s.y),
-            ).replace("+-","-")
-            outstr+=line
+            ).replace("+-", "-")
+            outstr += line
         print(outstr)
         return outstr
 
