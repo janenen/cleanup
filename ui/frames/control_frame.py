@@ -12,6 +12,11 @@ from ui.frames.settings_frame import SettingsFrame
 from ui.frames.select_port_frame import SelectPortFrame
 from ui.frames.result_frame import ResultFrame
 from ui.frames.string_frame import StringFrame
+from machines.rika import Rika
+from machines.disag import Disag
+from machines.csv import CSV
+from machines.qsd import QSD
+from machines.qr import QR
 
 # from analysis_frame import AnalysisFrame
 
@@ -23,11 +28,11 @@ class ControlFrame(ttk.Frame):
             self.nextframe = "port"
 
         elif self.nextframe == "port":
-            if self.quelle == "maschine":
+            if type(self.quelle) == Rika or type(self.quelle) == Disag:
                 self.nextframe = "settings"
-            elif self.quelle == "string":
+            elif type(self.quelle) == QR:
                 self.nextframe = "string"
-            else:
+            elif type(self.quelle) == CSV or type(self.quelle) == QSD:
                 self.nextframe = "file"
 
         elif self.nextframe == "file":

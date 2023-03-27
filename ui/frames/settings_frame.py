@@ -4,6 +4,11 @@ from tkinter.messagebox import showerror
 from datetime import date
 from idlelib.tooltip import Hovertip
 from shot import Match
+from machines.rika import Rika
+from machines.disag import Disag
+from machines.csv import CSV
+from machines.qsd import QSD
+from machines.qr import QR
 
 
 class SettingsFrame(ttk.Frame):
@@ -135,28 +140,28 @@ class SettingsFrame(ttk.Frame):
         else:
             self.ext_analysis.set(False)
 
-        if self.parent.quelle == "maschine":
+        if type(self.parent.quelle) == Rika or type(self.parent.quelle) == Disag:
             self.datum_entry["state"] = "normal"
             self.anzahl_entry["state"] = "normal"
             self.proscheibe_entry["state"] = "normal"
             self.save_box["state"] = "normal"
             self.scheibentyp_menu["state"] = "disabled"
-            self.quelle_label.config(text=self.parent.ser.name)
-        elif self.parent.quelle == "csv":
+            self.quelle_label.config(text=self.parent.quelle.connection.name)
+        elif type(self.parent.quelle) == CSV:
             self.datum_entry["state"] = "disabled"
             self.anzahl_entry["state"] = "disabled"
             self.proscheibe_entry["state"] = "disabled"
             self.save_box["state"] = "disabled"
             self.scheibentyp_menu["state"] = "disabled"
             self.quelle_label.config(text=self.parent.inputfile)
-        elif self.parent.quelle == "string":
+        elif type(self.parent.quelle) == QR:
             self.datum_entry["state"] = "disabled"
             self.anzahl_entry["state"] = "disabled"
             self.proscheibe_entry["state"] = "disabled"
             self.save_box["state"] = "disabled"
             self.scheibentyp_menu["state"] = "disabled"
             self.quelle_label.config(text="QR-Code")
-        else:  # qsd
+        elif type(self.parent.quelle) == QSD:  # qsd
             self.datum_entry["state"] = "normal"
             self.anzahl_entry["state"] = "disabled"
             self.proscheibe_entry["state"] = "disabled"
@@ -177,7 +182,7 @@ class SettingsFrame(ttk.Frame):
         self.parent.match.verein = self.verein.get()
         self.parent.match.setZehntel(self.zehntel.get())
         self.parent.is_extended = self.ext_analysis.get()
-        if self.parent.quelle == "qsd":
+        if type(self.parent.quelle) == QSD:
             self.parent.match.scheibentyp = self.scheibentyp.get()
             if self.parent.match.scheibentyp == "":
                 showerror(
@@ -185,9 +190,13 @@ class SettingsFrame(ttk.Frame):
                     message="Kein gültiger Scheibentyp ausgewählt",
                 )
                 return False
-        if self.parent.quelle == "maschine" or self.parent.quelle == "qsd":
+        if (
+            type(self.parent.quelle) == Rika
+            or type(self.parent.quelle) == Disag
+            or type(self.parent.quelle) == QSD
+        ):
             self.parent.match.datum = self.datum.get()
-        if self.parent.quelle == "maschine":
+        if type(self.parent.quelle) == Rika or type(self.parent.quelle) == Disag:
             try:
                 self.parent.anzahl = int(self.anzahl.get())
             except ValueError as error:

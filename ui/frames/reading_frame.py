@@ -3,6 +3,11 @@ from tkinter import ttk
 import time
 import pdfgenerator
 from shot import Shot, Match
+from machines.rika import Rika
+from machines.disag import Disag
+from machines.csv import CSV
+from machines.qsd import QSD
+from machines.qr import QR
 
 
 class ReadingFrame(ttk.Frame):
@@ -30,55 +35,57 @@ class ReadingFrame(ttk.Frame):
     def actionStart(self):
         # self.start_button["state"] = "disabled"
         # self.parent.progress.start()
-        if self.parent.quelle == "maschine":
+
+        # reading_thread=self.parent.quelle.reading()
+        if type(self.parent.quelle) == Rika:
             self.statusbox.insert("end", "Port wird geöffnet...")
             self.container.update()
-            self.parent.ser.open()
-            self.parent.ser.read()
-            self.parent.ser.write(b"\xd1")  # d1 einzeltreffer
-            ans = self.parent.ser.read(3)
+            self.parent.quelle.connection.open()
+            self.parent.quelle.connection.read()
+            self.parent.quelle.connection.write(b"\xd1")  # d1 einzeltreffer
+            ans = self.parent.quelle.connection.read(3)
             if ans != b"200":
-                self.parent.ser.close()
+                self.parent.quelle.connection.close()
                 return
 
             self.statusbox.insert("end", "Einstellungen werden übergeben...")
             self.container.update()
             # ESC S XXX CR
-            self.parent.ser.write(
+            self.parent.quelle.connection.write(
                 b"\x1bS" + bytes(str(self.parent.anzahl).zfill(3), "utf-8") + b"\x0d"
             )
-            ans = self.parent.ser.read(1)
+            ans = self.parent.quelle.connection.read(1)
             if ans != b"\06":
                 self.statusbox.insert("end", "Anzahl konnte nicht übernommen werden")
                 self.container.update()
-                self.parent.ser.write(b"\xd0")
-                self.parent.ser.close()
+                self.parent.quelle.connection.write(b"\xd0")
+                self.parent.quelle.connection.close()
                 self.parent.back_button["state"] = "normal"
                 return
             # ESC U X CR
-            self.parent.ser.write(
+            self.parent.quelle.connection.write(
                 b"\x1bU"
                 + bytes(str(self.parent.proscheibe).zfill(1), "utf-8")
                 + b"\x0d"
             )
-            ans = self.parent.ser.read(1)
+            ans = self.parent.quelle.connection.read(1)
             if ans != b"\06":
                 self.statusbox.insert(
                     "end", "Schuss/Scheibe konnte nicht übernommen werden"
                 )
-                self.parent.ser.write(b"\xd0")
-                self.parent.ser.close()
+                self.parent.quelle.connection.write(b"\xd0")
+                self.parent.quelle.connection.close()
                 self.parent.back_button["state"] = "normal"
                 return
             # ESC Z 3 CR
-            self.parent.ser.write(b"\x1bZ3\x0d")
-            ans = self.parent.ser.read(1)
+            self.parent.quelle.connection.write(b"\x1bZ3\x0d")
+            ans = self.parent.quelle.connection.read(1)
             if ans != b"\06":
                 self.statusbox.insert(
                     "end", "Teilerwertung konnte nicht übernommen werden"
                 )
-                self.parent.ser.write(b"\xd0")
-                self.parent.ser.close()
+                self.parent.quelle.connection.write(b"\xd0")
+                self.parent.quelle.connection.close()
                 self.parent.back_button["state"] = "normal"
                 return
             self.statusbox.insert("end", "Scheiben eingeben!")
@@ -86,12 +93,12 @@ class ReadingFrame(ttk.Frame):
             first = True
             while len(self.parent.shotlist) < self.parent.anzahl:
                 self.container.update()
-                self.parent.ser.write(b"\x16")
-                ans = self.parent.ser.read(1)
+                self.parent.quelle.connection.write(b"\x16")
+                ans = self.parent.quelle.connection.read(1)
 
                 if ans == b"\x01":
 
-                    ans = self.parent.ser.read(32 + 24 + 2)
+                    ans = self.parent.quelle.connection.read(32 + 24 + 2)
                     self.parent.match.scheibentyp = (
                         str(ans[22:24]).replace("b", "").replace("'", "")
                     )
@@ -106,25 +113,25 @@ class ReadingFrame(ttk.Frame):
                             y=int(ans[32 + 17 : 32 + 23]),
                         )
                     )
-                    self.parent.ser.write(b"\x0c")  # FF
+                    self.parent.quelle.connection.write(b"\x0c")  # FF
                     self.draw_shot(self.parent.shotlist[-1])
                     self.container.update()
                 else:
                     time.sleep(0.5)
             self.statusbox.insert("end", "Einlesen abgeschlossen")
-            self.parent.ser.write(b"\xd0")
-            self.parent.ser.read(1)
-            self.parent.ser.close()
+            self.parent.quelle.connection.write(b"\xd0")
+            self.parent.quelle.connection.read(1)
+            self.parent.quelle.connection.close()
 
             self.parent.match.fromShotlist(self.parent.shotlist)
         else:
             self.statusbox.insert("end", "Datei wird eingelesen")
             self.container.update()
-            if self.parent.quelle == "csv":
+            if type(self.parent.quelle) == CSV:
                 pdfgenerator.CSVgen.getMatch(self.parent.match, self.parent.inputfile)
-            elif self.parent.quelle == "qsd":
+            elif type(self.parent.quelle) == QSD:
                 pdfgenerator.QSD.getMatch(self.parent.match, self.parent.inputfile)
-            elif self.parent.quelle == "string":
+            elif type(self.parent.quelle) == QR:
                 pdfgenerator.QR.getMatch(self.parent.match, self.parent.inputstring)
             self.statusbox.insert("end", "Einlesen abgeschlossen")
             self.container.update()

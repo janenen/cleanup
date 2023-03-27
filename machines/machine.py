@@ -1,15 +1,34 @@
-from typing import Protocol
+from abc import ABC, abstractmethod
 
 
-class Machine(Protocol):
-    def setup(self,setup):
+class Machine(ABC):
+    @property
+    def connection(self):
+        return self._connection
+
+    @connection.setter
+    def connection(self, port):
+        self._connection = port
+
+    @abstractmethod
+    def set_port(self, port):
         ...
-        
-    def config(self, config):
-        ...
 
+    # @abstractmethod
+    # def setup(self,setup):
+    #    ...
+
+    @abstractmethod
     def is_available(self) -> bool:
         ...
 
-    def read(self):
+    @abstractmethod
+    def get_string(self) -> str:
         ...
+
+    # @abstractmethod
+    # def read(self):
+    #    ...
+
+    def __str__(self) -> str:
+        return self.get_string()

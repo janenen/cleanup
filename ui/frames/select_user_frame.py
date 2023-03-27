@@ -22,12 +22,6 @@ class SelectUserFrame(ttk.Frame):
         self.scrollbar.grid(column=2, row=0, sticky="wens")
         self.userlistbox.grid(columnspan=2, column=0, row=0, sticky="ew")
 
-        # button
-
-        # self.select_button = ttk.Button(self, text='Auswählen')
-        # self.select_button.grid(column=1, row=1, sticky='e', **options)
-        # self.select_button.configure(command=self.select)
-
         self.test_label = ttk.Label(self, text="")
         self.test_label.grid(columnspan=2, column=0, row=2, sticky="nesw", **options)
 
