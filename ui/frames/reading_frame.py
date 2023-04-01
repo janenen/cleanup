@@ -33,64 +33,54 @@ class ReadingFrame(ttk.Frame):
 
     def actionStart(self):
         print(self.parent.quelle)
-        if (
-            type(self.parent.quelle) == Rika
-            or type(self.parent.quelle) == CSV
-            or type(self.parent.quelle) == QSD
-        ):
-            self.parent.quelle.settings = MachineSettings(
-                count=self.parent.anzahl if type(self.parent.quelle) == Rika else None,
-                shots_per_target=self.parent.proscheibe
-                if type(self.parent.quelle) == Rika
-                else None,
-                type_of_target=self.parent.match.scheibentyp
-                if type(self.parent.quelle) == QSD
-                else None,
-                filepath=self.parent.inputfile
-                if type(self.parent.quelle) == CSV or type(self.parent.quelle) == QSD
-                else None,
-            )
-            self.statusbox.insert("end", "Port wird geöffnet...")
-            self.container.update()
-            self.statusbox.insert("end", "Einstellungen werden übergeben...")
-            self.container.update()
 
-            try:
-                self.parent.quelle.config()
-                config_success = True
-            except MachineException as e:
-                self.statusbox.insert("end", e.message)
-                self.container.update()
-                self.parent.back_button["state"] = "normal"
-                config_success = False
-            if config_success:
-                self.statusbox.insert("end", "Scheiben eingeben!")
-                self.container.update()
-                reader = self.parent.quelle.get_reading_thread()
-                reader.start()
-                first = True
-                while not reader.is_finished():
-                    shot, self.parent.match.scheibentyp = reader.get_reading()
-                    if shot == None:
-                        time.sleep(0.5)
-                    else:
-                        if first:
-                            first = False
-                            self.redraw_target()
-                        self.draw_shot(shot)
-                        self.container.update()
-                self.statusbox.insert("end", "Einlesen abgeschlossen")
-                self.container.update()
-                self.parent.match.fromShotlist(reader.get_result())
-            else:
-                return
-        else:
-            self.statusbox.insert("end", "Datei wird eingelesen")
+        self.parent.quelle.settings = MachineSettings(
+            count=self.parent.anzahl if type(self.parent.quelle) == Rika else None,
+            shots_per_target=self.parent.proscheibe
+            if type(self.parent.quelle) == Rika
+            else None,
+            type_of_target=self.parent.match.scheibentyp
+            if type(self.parent.quelle) == QSD
+            else None,
+            filepath=self.parent.inputfile
+            if type(self.parent.quelle) == CSV or type(self.parent.quelle) == QSD
+            else self.parent.inputstring
+            if type(self.parent.quelle) == QR
+            else None,
+        )
+        self.statusbox.insert("end", "Port wird geöffnet...")
+        self.container.update()
+        self.statusbox.insert("end", "Einstellungen werden übergeben...")
+        self.container.update()
+        try:
+            self.parent.quelle.config()
+            config_success = True
+        except MachineException as e:
+            self.statusbox.insert("end", e.message)
             self.container.update()
-            if type(self.parent.quelle) == QR:
-                pdfgenerator.QR.getMatch(self.parent.match, self.parent.inputstring)
+            self.parent.back_button["state"] = "normal"
+            config_success = False
+        if config_success:
+            self.statusbox.insert("end", "Scheiben eingeben!")
+            self.container.update()
+            reader = self.parent.quelle.get_reading_thread()
+            reader.start()
+            first = True
+            while not reader.is_finished():
+                shot, self.parent.match.scheibentyp = reader.get_reading()
+                if shot == None:
+                    time.sleep(0.5)
+                else:
+                    if first:
+                        first = False
+                        self.redraw_target()
+                    self.draw_shot(shot)
+                    self.container.update()
             self.statusbox.insert("end", "Einlesen abgeschlossen")
             self.container.update()
+            self.parent.match.fromShotlist(reader.get_result())
+        else:
+            return
 
         self.parent.back_button["state"] = "normal"
         self.parent.ok_button["state"] = "normal"
