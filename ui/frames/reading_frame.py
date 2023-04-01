@@ -33,13 +33,21 @@ class ReadingFrame(ttk.Frame):
 
     def actionStart(self):
         print(self.parent.quelle)
-        if type(self.parent.quelle) == Rika or type(self.parent.quelle) == CSV:
+        if (
+            type(self.parent.quelle) == Rika
+            or type(self.parent.quelle) == CSV
+            or type(self.parent.quelle) == QSD
+        ):
             self.parent.quelle.settings = MachineSettings(
-                count=self.parent.anzahl,
-                shots_per_target=self.parent.proscheibe,
-                type_of_target=None,
+                count=self.parent.anzahl if type(self.parent.quelle) == Rika else None,
+                shots_per_target=self.parent.proscheibe
+                if type(self.parent.quelle) == Rika
+                else None,
+                type_of_target=self.parent.match.scheibentyp
+                if type(self.parent.quelle) == QSD
+                else None,
                 filepath=self.parent.inputfile
-                if type(self.parent.quelle) == CSV
+                if type(self.parent.quelle) == CSV or type(self.parent.quelle) == QSD
                 else None,
             )
             self.statusbox.insert("end", "Port wird geöffnet...")
@@ -79,9 +87,7 @@ class ReadingFrame(ttk.Frame):
         else:
             self.statusbox.insert("end", "Datei wird eingelesen")
             self.container.update()
-            if type(self.parent.quelle) == QSD:
-                pdfgenerator.QSD.getMatch(self.parent.match, self.parent.inputfile)
-            elif type(self.parent.quelle) == QR:
+            if type(self.parent.quelle) == QR:
                 pdfgenerator.QR.getMatch(self.parent.match, self.parent.inputstring)
             self.statusbox.insert("end", "Einlesen abgeschlossen")
             self.container.update()
