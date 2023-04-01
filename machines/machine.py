@@ -1,7 +1,23 @@
 from abc import ABC, abstractmethod
+from dataclasses import dataclass
+
+
+@dataclass
+class MachineSettings:
+    count: int
+    shots_per_target: int
+    type_of_target: str | None
+
+
+class MachineException(Exception):
+    def __init__(self, message):
+        self.message = message
+        super().__init__(self.message)
 
 
 class Machine(ABC):
+    settings: MachineSettings
+
     @property
     def connection(self):
         return self._connection
@@ -14,9 +30,9 @@ class Machine(ABC):
     def set_port(self, port):
         ...
 
-    # @abstractmethod
-    # def setup(self,setup):
-    #    ...
+    @abstractmethod
+    def config(self):
+        ...
 
     @abstractmethod
     def is_available(self) -> bool:
@@ -32,3 +48,14 @@ class Machine(ABC):
 
     def __str__(self) -> str:
         return self.get_string()
+
+
+class VirtualMachine(Machine):
+    def is_available(self):
+        return self.connection == "file"
+
+    def set_port(self, port):
+        if type(port) == str:
+            self.connection = port
+        else:
+            self.connection = ""

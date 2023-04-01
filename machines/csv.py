@@ -1,12 +1,9 @@
-from .machine import Machine
+from .machine import VirtualMachine
 
 
-class CSV(Machine):
-    def is_available(self):
-        return True
-
-    def set_port(self, port):
-        print("csv")
-
+class CSV(VirtualMachine):
     def get_string(self) -> str:
         return "CSV aus Datei"
+
+    def config(self):
+        print(self.settings)

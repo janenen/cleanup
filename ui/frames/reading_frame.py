@@ -8,6 +8,7 @@ from machines.disag import Disag
 from machines.csv import CSV
 from machines.qsd import QSD
 from machines.qr import QR
+from machines.machine import MachineSettings, MachineException
 
 
 class ReadingFrame(ttk.Frame):
@@ -20,116 +21,65 @@ class ReadingFrame(ttk.Frame):
         options = {"padx": 5, "pady": 0}
         self.statusbox = tk.Listbox(self, state="normal")
         self.statusbox.grid(column=0, row=0, sticky="nesw")
-        # ttk.Label(self, text="Scheiben einlesen!").grid(column=0,row=0,sticky="e",**options)
-        # self.start_button = tk.Button(self, text="Start", command=self.actionStart)
-        # self.start_button.pack()
+
         self.canvsize = 200
         self.canvas = tk.Canvas(
             self, bg="white", height=self.canvsize, width=self.canvsize
         )
         self.canvas.grid(column=1, row=0, sticky="nse")
-        # self.start_button.grid(columnspan=2,column=1,row=1,sticky='e',**options)
+
         self.columnconfigure(0, weight=1)
         self.grid(column=0, row=0, padx=5, pady=5, sticky="nsew")
 
     def actionStart(self):
-        # self.start_button["state"] = "disabled"
-        # self.parent.progress.start()
-
-        # reading_thread=self.parent.quelle.reading()
-        if type(self.parent.quelle) == Rika:
+        print(self.parent.quelle)
+        if type(self.parent.quelle) == Rika or type(self.parent.quelle) == CSV:
+            self.parent.quelle.settings = MachineSettings(
+                count=self.parent.anzahl,
+                shots_per_target=self.parent.proscheibe,
+                type_of_target=None,
+                filepath=self.parent.inputfile
+                if type(self.parent.quelle) == CSV
+                else None,
+            )
             self.statusbox.insert("end", "Port wird geöffnet...")
             self.container.update()
-            self.parent.quelle.connection.open()
-            self.parent.quelle.connection.read()
-            self.parent.quelle.connection.write(b"\xd1")  # d1 einzeltreffer
-            ans = self.parent.quelle.connection.read(3)
-            if ans != b"200":
-                self.parent.quelle.connection.close()
-                return
-
             self.statusbox.insert("end", "Einstellungen werden übergeben...")
             self.container.update()
-            # ESC S XXX CR
-            self.parent.quelle.connection.write(
-                b"\x1bS" + bytes(str(self.parent.anzahl).zfill(3), "utf-8") + b"\x0d"
-            )
-            ans = self.parent.quelle.connection.read(1)
-            if ans != b"\06":
-                self.statusbox.insert("end", "Anzahl konnte nicht übernommen werden")
+
+            try:
+                self.parent.quelle.config()
+                config_success = True
+            except MachineException as e:
+                self.statusbox.insert("end", e.message)
                 self.container.update()
-                self.parent.quelle.connection.write(b"\xd0")
-                self.parent.quelle.connection.close()
                 self.parent.back_button["state"] = "normal"
-                return
-            # ESC U X CR
-            self.parent.quelle.connection.write(
-                b"\x1bU"
-                + bytes(str(self.parent.proscheibe).zfill(1), "utf-8")
-                + b"\x0d"
-            )
-            ans = self.parent.quelle.connection.read(1)
-            if ans != b"\06":
-                self.statusbox.insert(
-                    "end", "Schuss/Scheibe konnte nicht übernommen werden"
-                )
-                self.parent.quelle.connection.write(b"\xd0")
-                self.parent.quelle.connection.close()
-                self.parent.back_button["state"] = "normal"
-                return
-            # ESC Z 3 CR
-            self.parent.quelle.connection.write(b"\x1bZ3\x0d")
-            ans = self.parent.quelle.connection.read(1)
-            if ans != b"\06":
-                self.statusbox.insert(
-                    "end", "Teilerwertung konnte nicht übernommen werden"
-                )
-                self.parent.quelle.connection.write(b"\xd0")
-                self.parent.quelle.connection.close()
-                self.parent.back_button["state"] = "normal"
-                return
-            self.statusbox.insert("end", "Scheiben eingeben!")
-            self.container.update()
-            first = True
-            while len(self.parent.shotlist) < self.parent.anzahl:
+                config_success = False
+            if config_success:
+                self.statusbox.insert("end", "Scheiben eingeben!")
                 self.container.update()
-                self.parent.quelle.connection.write(b"\x16")
-                ans = self.parent.quelle.connection.read(1)
-
-                if ans == b"\x01":
-
-                    ans = self.parent.quelle.connection.read(32 + 24 + 2)
-                    self.parent.match.scheibentyp = (
-                        str(ans[22:24]).replace("b", "").replace("'", "")
-                    )
-                    if first:
-                        self.redraw_target()
-                        first = False
-                    self.parent.shotlist.append(
-                        Shot(
-                            ringe=int(ans[32 : 32 + 3]) / 10,
-                            teiler=int(ans[32 + 4 : 32 + 9]),
-                            x=int(ans[32 + 10 : 32 + 16]),
-                            y=int(ans[32 + 17 : 32 + 23]),
-                        )
-                    )
-                    self.parent.quelle.connection.write(b"\x0c")  # FF
-                    self.draw_shot(self.parent.shotlist[-1])
-                    self.container.update()
-                else:
-                    time.sleep(0.5)
-            self.statusbox.insert("end", "Einlesen abgeschlossen")
-            self.parent.quelle.connection.write(b"\xd0")
-            self.parent.quelle.connection.read(1)
-            self.parent.quelle.connection.close()
-
-            self.parent.match.fromShotlist(self.parent.shotlist)
+                reader = self.parent.quelle.get_reading_thread()
+                reader.start()
+                first = True
+                while not reader.is_finished():
+                    shot, self.parent.match.scheibentyp = reader.get_reading()
+                    if shot == None:
+                        time.sleep(0.5)
+                    else:
+                        if first:
+                            first = False
+                            self.redraw_target()
+                        self.draw_shot(shot)
+                        self.container.update()
+                self.statusbox.insert("end", "Einlesen abgeschlossen")
+                self.container.update()
+                self.parent.match.fromShotlist(reader.get_result())
+            else:
+                return
         else:
             self.statusbox.insert("end", "Datei wird eingelesen")
             self.container.update()
-            if type(self.parent.quelle) == CSV:
-                pdfgenerator.CSVgen.getMatch(self.parent.match, self.parent.inputfile)
-            elif type(self.parent.quelle) == QSD:
+            if type(self.parent.quelle) == QSD:
                 pdfgenerator.QSD.getMatch(self.parent.match, self.parent.inputfile)
             elif type(self.parent.quelle) == QR:
                 pdfgenerator.QR.getMatch(self.parent.match, self.parent.inputstring)
@@ -141,14 +91,13 @@ class ReadingFrame(ttk.Frame):
         # self.parent.progress.stop()
         self.parent.actionOK()
 
-    def draw_shot(self, a):
-
+    def draw_shot(self, shot):
         radiusCalibre = Match.radius_dict[self.parent.match.scheibentyp][4]
         self.canvas.create_oval(
-            (a.x - radiusCalibre) * self.scalefactor + self.canvsize / 2,
-            -(a.y - radiusCalibre) * self.scalefactor + self.canvsize / 2,
-            (a.x + radiusCalibre) * self.scalefactor + self.canvsize / 2,
-            -(a.y + radiusCalibre) * self.scalefactor + self.canvsize / 2,
+            (shot.x - radiusCalibre) * self.scalefactor + self.canvsize / 2,
+            -(shot.y - radiusCalibre) * self.scalefactor + self.canvsize / 2,
+            (shot.x + radiusCalibre) * self.scalefactor + self.canvsize / 2,
+            -(shot.y + radiusCalibre) * self.scalefactor + self.canvsize / 2,
             # fill="orange" if a in self.parent.match.ausreisser else "green",
             fill="green",
             tag="shot",

@@ -1,12 +1,9 @@
-from .machine import Machine
+from .machine import VirtualMachine
 
 
-class QSD(Machine):
-    def is_available(self):
-        return True
-
-    def set_port(self, port):
-        print("qsd")
-
+class QSD(VirtualMachine):
     def get_string(self) -> str:
         return "QSD aus Datei"
+
+    def config(self):
+        print(self.settings)

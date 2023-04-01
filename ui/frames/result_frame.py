@@ -155,7 +155,6 @@ class ResultFrame(ttk.Frame):
             self.write_shots()
 
     def actionBack(self):
-
         self.i -= 1
         if self.i < 0:
             self.i = len(self.parent.match.series)

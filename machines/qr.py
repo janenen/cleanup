@@ -1,12 +1,9 @@
-from .machine import Machine
+from .machine import VirtualMachine
 
 
-class QR(Machine):
-    def is_available(self):
-        return True
-
-    def set_port(self, port):
-        print("qr")
-
+class QR(VirtualMachine):
     def get_string(self) -> str:
         return "QR-Code aus Eingabe"
+
+    def config(self):
+        print(self.settings)

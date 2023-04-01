@@ -1,5 +1,6 @@
 from .machine import Machine
 
+
 # dummy class for another physical machine
 class Disag(Machine):
     def is_available(self):
@@ -11,6 +12,9 @@ class Disag(Machine):
 
     def get_string(self) -> str:
         return "test"
+
+    def config(self):
+        print(self.settings)
 
 
 if __name__ == "__main__":

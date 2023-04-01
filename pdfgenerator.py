@@ -193,7 +193,6 @@ class PDFgen:
 
     @staticmethod
     def drawSeries(series, scheibentyp):
-
         radiusTen = Match.radius_dict[scheibentyp][0]
         radiusInnerTen = Match.radius_dict[scheibentyp][1]
         incrementRing = Match.radius_dict[scheibentyp][2]
@@ -237,7 +236,6 @@ class PDFgen:
 
     @staticmethod
     def drawTarget(scheibentyp):
-
         radiusTen = Match.radius_dict[scheibentyp][0]
         radiusInnerTen = max(Match.radius_dict[scheibentyp][1], 0)
         incrementRing = Match.radius_dict[scheibentyp][2]
@@ -394,7 +392,6 @@ class PDFgen:
 
         # create a temporary directory
         with tempfile.TemporaryDirectory() as directory:
-
             PDFgen.write_totals(match, pdf, directory)
 
             PDFgen.write_series(match, pdf, directory)

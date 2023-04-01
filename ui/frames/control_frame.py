@@ -106,7 +106,6 @@ class ControlFrame(ttk.Frame):
         self.change_frame(back=True)
 
     def __init__(self, container):
-
         super().__init__(container)
         # self['text'] = 'Options'
         self.container = container
@@ -139,7 +138,6 @@ class ControlFrame(ttk.Frame):
     def reset(self):
         self.anzahl = 40
         self.proscheibe = 1
-        self.shotlist = []
         self.match = Match()
         self.userconfig = configparser.ConfigParser()
         self.usersection = ""
