@@ -3,6 +3,8 @@ from tkinter import ttk
 from tkinter import filedialog
 import os
 from idlelib.tooltip import Hovertip
+from machines.csv import CSV
+from machines.qsd import QSD
 
 
 class SelectFileFrame(ttk.Frame):
@@ -27,17 +29,17 @@ class SelectFileFrame(ttk.Frame):
             filepath = "./"
         else:
             filepath = self.parent.match.name.replace(" ", "_")
+        if type(self.parent.quelle) == CSV:
+            filetype = ("CSV Dateien", "*.csv")
+        elif type(self.parent.quelle) == QSD:
+            filetype = ("QuickShot Dateien", "*.qsd")
         self.parent.inputfile = filedialog.askopenfilename(
             initialdir=filepath,
-            filetypes=(("CSV Dateien", "*.csv"), ("QuickShot Dateien", "*.qsd")),
+            filetypes=[filetype],
         )
         self.container.deiconify()
         if os.path.isfile(self.parent.inputfile):
             self.parent.ok_button["state"] = "normal"
-            if self.parent.inputfile.endswith(".qsd"):
-                self.parent.quelle = "qsd"
-            elif self.parent.inputfile.endswith(".csv"):
-                self.parent.quelle = "csv"
         else:
             self.parent.ok_button["state"] = "disabled"
         self.test_label.config(text=self.parent.inputfile)
