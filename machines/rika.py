@@ -1,8 +1,8 @@
-from .machine import Machine, MachineSettings, MachineException
+from .machine import Machine, MachineException
 import serial, time, re
 from serial.tools.list_ports_common import ListPortInfo
 from threading import Thread
-from shot import Shot
+from data.shot import Shot
 
 NUL = b"\x00"
 SOH = b"\x01"

@@ -3,7 +3,7 @@ from tkinter import ttk
 import serial
 import serial.tools.list_ports
 import configparser
-from shot import Match
+from data.match import Match
 from ui.frames.select_file_frame import SelectFileFrame
 from ui.frames.select_user_frame import SelectUserFrame
 from ui.frames.fsk_frame import FSKFrame

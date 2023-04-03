@@ -3,6 +3,7 @@ from tkinter import ttk
 import os
 
 
+# Not used yet
 class SelectMatchFrame(tk.Frame):
     def __init__(self, container, parent):
         super().__init__(container)

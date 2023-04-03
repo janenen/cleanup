@@ -1,14 +1,10 @@
 from .machine import (
     VirtualMachine,
-    MachineSettings,
-    Machine,
     MachineException,
     ReadingThread,
 )
-from shot import Shot
-from threading import Thread
-import os, re
-import struct
+from data.shot import Shot
+import re
 
 header_regex_string = "\d{8}\w{2}"
 shots_regex_string = (

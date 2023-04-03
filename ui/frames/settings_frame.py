@@ -3,7 +3,7 @@ from tkinter import ttk
 from tkinter.messagebox import showerror
 from datetime import date
 from idlelib.tooltip import Hovertip
-from shot import Match
+from data.match import Match, RADIUS_DICT
 from machines.rika import Rika
 from machines.disag import Disag
 from machines.csv import CSV
@@ -76,7 +76,7 @@ class SettingsFrame(ttk.Frame):
 
         self.scheibentyp = tk.StringVar()
         self.scheibentyp_menu = tk.OptionMenu(
-            self, self.scheibentyp, *list(Match.radius_dict.keys())
+            self, self.scheibentyp, *list(RADIUS_DICT.keys())
         )
         self.scheibentyp_menu.grid(column=1, row=6, sticky="w", **options)
         Hovertip(
@@ -161,7 +161,7 @@ class SettingsFrame(ttk.Frame):
             self.save_box["state"] = "disabled"
             self.scheibentyp_menu["state"] = "disabled"
             self.quelle_label.config(text="QR-Code")
-        elif type(self.parent.quelle) == QSD:  # qsd
+        elif type(self.parent.quelle) == QSD:
             self.datum_entry["state"] = "normal"
             self.anzahl_entry["state"] = "disabled"
             self.proscheibe_entry["state"] = "disabled"

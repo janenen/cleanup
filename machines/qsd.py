@@ -1,13 +1,11 @@
 from .machine import (
     VirtualMachine,
-    MachineSettings,
-    Machine,
     MachineException,
     ReadingThread,
 )
-from shot import Shot
+from data.shot import Shot
 from threading import Thread
-import re, os
+import os
 import struct
 
 

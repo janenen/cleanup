@@ -1,12 +1,10 @@
-import tkinter as tk
 from tkinter import ttk
-import time
-from shot import Shot, Match
+from data.match import RADIUS_DICT
 import numpy as np
 import cv2, math
-import tempfile
 
 
+# Not used yet
 class AnalysisFrame(ttk.Frame):
     def __init__(self, container, parent):
         super().__init__(container)
@@ -19,11 +17,9 @@ class AnalysisFrame(ttk.Frame):
     def drawSeries(self):
         series = self.parent.match
         scheibentyp = self.parent.match.scheibentyp
-        radiusTen = Match.radius_dict[scheibentyp][0]
-        radiusInnerTen = Match.radius_dict[scheibentyp][1]
-        incrementRing = Match.radius_dict[scheibentyp][2]
-        radiusBlack = Match.radius_dict[scheibentyp][3]
-        radiusCalibre = Match.radius_dict[scheibentyp][4]
+        radiusTen = RADIUS_DICT[scheibentyp][0]
+        incrementRing = RADIUS_DICT[scheibentyp][2]
+        radiusCalibre = RADIUS_DICT[scheibentyp][4]
 
         w = 2 * (radiusTen + 9 * incrementRing)
         scale = 400 / w

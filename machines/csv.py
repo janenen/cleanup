@@ -1,12 +1,9 @@
 from .machine import (
     VirtualMachine,
-    MachineSettings,
-    Machine,
     MachineException,
     ReadingThread,
 )
-from shot import Shot
-from threading import Thread
+from data.shot import Shot
 import re, os
 
 header_regex_string = "(?P<date>\\d{2}.\\d{2}.\\d{4});(?P<count>\\d+);(?:b')?(?P<type_of_target>\\w{2})'?\\n"
@@ -64,3 +61,11 @@ class CSV(VirtualMachine):
         thr = CSVReadingThread()
         thr.machine = self
         return thr
+
+    @property
+    def needs_setting(self) -> list[str]:
+        return [
+            "date",
+            "count",
+            "shots_per_target",
+        ]

@@ -6,8 +6,8 @@ import numpy as np
 import cv2
 import tempfile
 import struct
-from shot import Shot, Match
-import matplotlib.pyplot as plt
+from data.shot import Shot
+from data.match import RADIUS_DICT
 import seaborn as sns
 import pandas as pd
 import qrcode
@@ -153,11 +153,9 @@ class PDFgen:
 
     @staticmethod
     def drawHeatmap(series, scheibentyp):
-        radiusTen = Match.radius_dict[scheibentyp][0]
-        radiusInnerTen = Match.radius_dict[scheibentyp][1]
-        incrementRing = Match.radius_dict[scheibentyp][2]
-        radiusBlack = Match.radius_dict[scheibentyp][3]
-        radiusCalibre = Match.radius_dict[scheibentyp][4]
+        radiusTen = RADIUS_DICT[scheibentyp][0]
+        incrementRing = RADIUS_DICT[scheibentyp][2]
+        radiusCalibre = RADIUS_DICT[scheibentyp][4]
 
         w = 2 * (radiusTen + 9 * incrementRing)
         scale = 400 / w
@@ -193,11 +191,9 @@ class PDFgen:
 
     @staticmethod
     def drawSeries(series, scheibentyp):
-        radiusTen = Match.radius_dict[scheibentyp][0]
-        radiusInnerTen = Match.radius_dict[scheibentyp][1]
-        incrementRing = Match.radius_dict[scheibentyp][2]
-        radiusBlack = Match.radius_dict[scheibentyp][3]
-        radiusCalibre = Match.radius_dict[scheibentyp][4]
+        radiusTen = RADIUS_DICT[scheibentyp][0]
+        incrementRing = RADIUS_DICT[scheibentyp][2]
+        radiusCalibre = RADIUS_DICT[scheibentyp][4]
 
         w = 2 * (radiusTen + 9 * incrementRing)
 
@@ -236,11 +232,10 @@ class PDFgen:
 
     @staticmethod
     def drawTarget(scheibentyp):
-        radiusTen = Match.radius_dict[scheibentyp][0]
-        radiusInnerTen = max(Match.radius_dict[scheibentyp][1], 0)
-        incrementRing = Match.radius_dict[scheibentyp][2]
-
-        radiusBlack = Match.radius_dict[scheibentyp][3]
+        radiusTen = RADIUS_DICT[scheibentyp][0]
+        radiusInnerTen = max(RADIUS_DICT[scheibentyp][1], 0)
+        incrementRing = RADIUS_DICT[scheibentyp][2]
+        radiusBlack = RADIUS_DICT[scheibentyp][3]
         w = 2 * (radiusTen + 9 * incrementRing)
         blank_image = np.zeros((w, w, 3), np.uint8)
         blank_image.fill(255)
@@ -352,8 +347,8 @@ class PDFgen:
 
     @staticmethod
     def drawArrow(x, y, scheibentyp):
-        radiusInnerTen = Match.radius_dict[scheibentyp][1]
-        radiusCalibre = Match.radius_dict[scheibentyp][4]
+        radiusInnerTen = RADIUS_DICT[scheibentyp][1]
+        radiusCalibre = RADIUS_DICT[scheibentyp][4]
         w = 50  # 50
         t = 2
         r = int(w / 2 - 2 * t)
@@ -434,34 +429,8 @@ class PDFgen:
             )
             grid_limit = (
                 max(dataframe["x"].abs().max(), dataframe["y"].abs().max())
-                + Match.radius_dict[match.scheibentyp][4]
+                + RADIUS_DICT[match.scheibentyp][4]
             )
-
-            # fig, ax = plt.subplots(2,2)
-            # ax[0,0].boxplot(
-            #    (match.get_x_list(),),
-            #    vert=False,
-            #    showmeans=True,
-            #    meanline=True,
-            #    labels=("x",),
-            #    patch_artist=True,
-            #    medianprops={"linewidth": 2, "color": "purple"},
-            #    meanprops={"linewidth": 2, "color": "red"},
-            # )
-            ##fig.savefig(directory + "\\boxplot_x.png")
-            ##pdf.image(directory + "\\boxplot_x.png", 10, 100, 90)
-            ##fig, ax = plt.subplots()
-            # ax[0,1].boxplot(
-            #    (match.get_y_list(),),
-            #    vert=False,
-            #    showmeans=True,
-            #    meanline=True,
-            #    labels=( "y",),
-            #    patch_artist=True,
-            #    medianprops={"linewidth": 2, "color": "purple"},
-            #    meanprops={"linewidth": 2, "color": "red"},
-            # )
-            # sns.kdeplot(dataframe,x="x",y="y",fill=True,ax=ax[1,0])
             p = sns.JointGrid(
                 dataframe,
                 x="x",

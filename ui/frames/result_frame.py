@@ -4,7 +4,7 @@ from datetime import datetime
 import math
 import pdfgenerator
 from idlelib.tooltip import Hovertip
-from shot import Match
+from data.match import Match, RADIUS_DICT
 
 
 class ResultFrame(ttk.Frame):
@@ -226,11 +226,7 @@ class ResultFrame(ttk.Frame):
     def redraw_shots(self):
         self.shotcircles.clear()
         self.canvas.delete("shot")
-        radiusTen = Match.radius_dict[self.parent.match.scheibentyp][0]
-        radiusInnerTen = Match.radius_dict[self.parent.match.scheibentyp][1]
-        incrementRing = Match.radius_dict[self.parent.match.scheibentyp][2]
-        radiusBlack = Match.radius_dict[self.parent.match.scheibentyp][3]
-        radiusCalibre = Match.radius_dict[self.parent.match.scheibentyp][4]
+        radiusCalibre = RADIUS_DICT[self.parent.match.scheibentyp][4]
         # self.canvas.xview_moveto(self.origX)
         # self.canvas.yview_moveto(self.origY)
         for a in self.actuallist:
@@ -264,11 +260,9 @@ class ResultFrame(ttk.Frame):
 
     def redraw_target(self):
         self.canvas.delete("ring")
-        radiusTen = Match.radius_dict[self.parent.match.scheibentyp][0]
-        radiusInnerTen = Match.radius_dict[self.parent.match.scheibentyp][1]
-        incrementRing = Match.radius_dict[self.parent.match.scheibentyp][2]
-        radiusBlack = Match.radius_dict[self.parent.match.scheibentyp][3]
-        radiusCalibre = Match.radius_dict[self.parent.match.scheibentyp][4]
+        radiusTen = RADIUS_DICT[self.parent.match.scheibentyp][0]
+        incrementRing = RADIUS_DICT[self.parent.match.scheibentyp][2]
+        radiusBlack = RADIUS_DICT[self.parent.match.scheibentyp][3]
         w = 2 * (radiusTen + 9 * incrementRing)
         self.scalefactor = self.canvsize / w
         spiegel = self.canvas.create_oval(

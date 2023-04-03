@@ -1,10 +1,8 @@
 import tkinter as tk
 from tkinter import ttk
 import time
-import pdfgenerator
-from shot import Shot, Match
+from data.match import RADIUS_DICT
 from machines.rika import Rika
-from machines.disag import Disag
 from machines.csv import CSV
 from machines.qsd import QSD
 from machines.qr import QR
@@ -88,7 +86,7 @@ class ReadingFrame(ttk.Frame):
         self.parent.actionOK()
 
     def draw_shot(self, shot):
-        radiusCalibre = Match.radius_dict[self.parent.match.scheibentyp][4]
+        radiusCalibre = RADIUS_DICT[self.parent.match.scheibentyp][4]
         self.canvas.create_oval(
             (shot.x - radiusCalibre) * self.scalefactor + self.canvsize / 2,
             -(shot.y - radiusCalibre) * self.scalefactor + self.canvsize / 2,
@@ -102,11 +100,9 @@ class ReadingFrame(ttk.Frame):
 
     def redraw_target(self):
         self.clear_target()
-        radiusTen = Match.radius_dict[self.parent.match.scheibentyp][0]
-        radiusInnerTen = Match.radius_dict[self.parent.match.scheibentyp][1]
-        incrementRing = Match.radius_dict[self.parent.match.scheibentyp][2]
-        radiusBlack = Match.radius_dict[self.parent.match.scheibentyp][3]
-        radiusCalibre = Match.radius_dict[self.parent.match.scheibentyp][4]
+        radiusTen = RADIUS_DICT[self.parent.match.scheibentyp][0]
+        incrementRing = RADIUS_DICT[self.parent.match.scheibentyp][2]
+        radiusBlack = RADIUS_DICT[self.parent.match.scheibentyp][3]
         w = 2 * (radiusTen + 9 * incrementRing)
         self.scalefactor = self.canvsize / w
         spiegel = self.canvas.create_oval(

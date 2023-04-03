@@ -2,7 +2,7 @@ from abc import ABC, abstractmethod
 from dataclasses import dataclass
 import os
 from threading import Thread
-from shot import Shot
+from data.shot import Shot
 
 
 @dataclass
@@ -46,10 +46,6 @@ class Machine(ABC):
     @abstractmethod
     def get_string(self) -> str:
         ...
-
-    # @abstractmethod
-    # def read(self):
-    #    ...
 
     def __str__(self) -> str:
         return self.get_string()
