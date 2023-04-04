@@ -1,0 +1,46 @@
+from datetime import date
+from .match import Match, MatchSettings
+from .shooter import Shooter
+from machines.machine import Machine
+
+
+class CompetitionSettings:
+    name: str
+    date: str
+    count: int
+    shots_per_target: int
+    type_of_target: int
+    decimal: bool
+
+
+class Competition:
+    settings: CompetitionSettings
+    source: Machine
+    entries: list[Match] = []
+    _current_match: Match
+
+    def __init__(self, settings):
+        self.settings = settings
+
+    def add_match(self, shooter: Shooter):
+        new_match = Match(
+            MatchSettings(
+                competition=self.settings.name,
+                decimal=self.settings.decimal,
+                count=self.settings.count,
+                date=date.today().strftime("%d.%m.%Y"),
+                shooter=shooter,
+                type_of_target=self.settings.type_of_target,
+            )
+        )
+
+        self.entries.append(new_match)
+        self._current_match = self.entries[-1]
+
+    @property
+    def current_match(self):
+        return self._current_match
+
+    def get_sorted_results(self):
+        return self.entries
+        # add sort function later

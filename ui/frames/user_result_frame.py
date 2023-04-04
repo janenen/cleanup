@@ -2,19 +2,20 @@ import tkinter as tk
 from tkinter import ttk
 from datetime import datetime
 import math
+from data.series import Series
 import pdfgenerator
 from idlelib.tooltip import Hovertip
-from shot import Match
+from data.match import Match, RADIUS_DICT
+from configparser import ConfigParser
 
 
-class ResultFrame(ttk.Frame):
+class UserResultFrame(ttk.Frame):
     def __init__(self, container, parent):
         super().__init__(container)
         self.parent = parent
         # field options
         options = {"padx": 5, "pady": 0}
         self.i = 0
-        self.scalefactor = 1
         self.shotcircles = {}
         self.canvsize = 200
         self.canvas = tk.Canvas(
@@ -140,107 +141,94 @@ class ResultFrame(ttk.Frame):
 
     def actionFore(self):
         self.i += 1
-        if self.i == 0 or self.i > len(self.parent.match.series):
+        if self.i == 0 or self.i > len(self.match.series):
             self.i = 0
-            self.actuallist = self.parent.match
+            self.actuallist = self.match
             self.serieslabel.config(text="Gesammt")
             self.resultlabelframe.config(text="Gesammtergebnis")
             self.redraw_shots()
             self.write_shots()
         else:
-            self.actuallist = self.parent.match.series[self.i - 1]
+            self.actuallist = self.match.series[self.i - 1]
             self.serieslabel.config(text="Serie {:d}".format(self.i))
             self.resultlabelframe.config(text="Serie {:d}".format(self.i))
             self.redraw_shots()
             self.write_shots()
 
     def actionBack(self):
-
         self.i -= 1
         if self.i < 0:
-            self.i = len(self.parent.match.series)
-            self.actuallist = self.parent.match.series[self.i - 1]
+            self.i = len(self.match.series)
+            self.actuallist = self.match.series[self.i - 1]
             self.serieslabel.config(text="Serie {:d}".format(self.i))
             self.resultlabelframe.config(text="Serie {:d}".format(self.i))
         elif self.i == 0:
-            self.i = len(self.parent.match.series)
-            self.actuallist = self.parent.match
+            self.i = len(self.match.series)
+            self.actuallist = self.match
             self.serieslabel.config(text="Gesammt")
             self.resultlabelframe.config(text="Gesammtergebnis")
         else:
-            self.actuallist = self.parent.match.series[self.i - 1]
+            self.actuallist = self.match.series[self.i - 1]
             self.serieslabel.config(text="Serie {:d}".format(self.i))
             self.resultlabelframe.config(text="Serie {:d}".format(self.i))
         self.redraw_shots()
         self.write_shots()
 
     def actionSpeichern(self):
-        if self.parent.userconfig.has_option(self.parent.usersection, "niceness"):
-            niceness = (
-                self.parent.userconfig.getint(self.parent.usersection, "niceness") + 1
-            )
-        else:
-            niceness = 1
-        self.parent.userconfig[self.parent.usersection]["niceness"] = str(niceness)
-        with open(self.parent.userconfigpath, "w") as configfile:
-            self.parent.userconfig.write(configfile)
-        # self.parent.progress.start()
+        userconfig = ConfigParser()
+        userconfigpath = "./schuetzen.ini"
+        userconfig.read(userconfigpath)
+        usersection = self.match.settings.shooter.name.replace(" ", "")
+        if userconfig.has_section(usersection):
+            if userconfig.has_option(usersection, "niceness"):
+                niceness = userconfig.getint(usersection, "niceness") + 1
+            else:
+                niceness = 1
+            userconfig[usersection]["niceness"] = str(niceness)
+            with open(userconfigpath, "w") as configfile:
+                userconfig.write(configfile)
         self.actionCSV()
         self.actionPDF()
-        # self.parent.progress.stop()
 
     def actionCSV(self):
-        filedate = datetime.strptime(self.parent.match.datum, "%d.%m.%Y")
-        if self.parent.usersection == "Neu":
-            filepath = ""
-            filename = (
-                datetime.strftime(filedate, "%y%m%d")
-                + "_"
-                + self.parent.match.name.replace(" ", "_")
-            )
+        filedate = datetime.strptime(self.match.settings.date, "%d.%m.%Y")
+        filepath = self.match.settings.shooter.name.replace(" ", "_") + "\\csv"
+        filename = datetime.strftime(filedate, "%y%m%d")
 
-        else:
-            filepath = self.parent.match.name.replace(" ", "_") + "\\csv"
-            filename = datetime.strftime(filedate, "%y%m%d")
-
-        pdfgenerator.CSVgen.makeCSV(self.parent.match, filepath, filename)
-        # self.csv_button['state']='disabled'
+        pdfgenerator.CSVgen.makeCSV(self.match, filepath, filename)
 
     def actionPDF(self):
-        filedate = datetime.strptime(self.parent.match.datum, "%d.%m.%Y")
-        if self.parent.usersection == "Neu":
-            filepath = ""
-            filename = f"""{datetime.strftime(filedate, "%y%m%d")}_{self.parent.match.scheibentyp}_{self.parent.match.name.replace(" ", "_")}"""
-        else:
-            filepath = self.parent.match.name.replace(" ", "_")
-            filename = f"""{datetime.strftime(filedate, "%y%m%d")}_{self.parent.match.scheibentyp}"""
-
-        pdfgenerator.PDFgen.makePDF(
-            self.parent.match, filepath, filename, self.parent.is_extended
+        filedate = datetime.strptime(self.match.settings.date, "%d.%m.%Y")
+        filepath = self.match.settings.shooter.name.replace(" ", "_")
+        filename = f"""{datetime.strftime(filedate, "%y%m%d")}_{self.match.settings.type_of_target}"""
+        pdfgenerator.PDFgen.makeShooterPDF(
+            self.match,
+            filepath,
+            filename,
         )
         self.generate_button["state"] = "disabled"
 
     """def recalc(self,event=None):
-        self.parent.match.getOutliers(l=self.l_value.get())
+        self.match.getOutliers(l=self.l_value.get())
         self.redraw_shots()"""
 
     def redraw_shots(self):
         self.shotcircles.clear()
         self.canvas.delete("shot")
-        radiusTen = Match.radius_dict[self.parent.match.scheibentyp][0]
-        radiusInnerTen = Match.radius_dict[self.parent.match.scheibentyp][1]
-        incrementRing = Match.radius_dict[self.parent.match.scheibentyp][2]
-        radiusBlack = Match.radius_dict[self.parent.match.scheibentyp][3]
-        radiusCalibre = Match.radius_dict[self.parent.match.scheibentyp][4]
+        radiusCalibre = RADIUS_DICT[self.match.settings.type_of_target][4]
+        radiusTen = RADIUS_DICT[self.match.settings.type_of_target][0]
+        incrementRing = RADIUS_DICT[self.match.settings.type_of_target][2]
         # self.canvas.xview_moveto(self.origX)
         # self.canvas.yview_moveto(self.origY)
+        w = 2 * (radiusTen + 9 * incrementRing)
+        scalefactor = self.canvsize / w
         for a in self.actuallist:
             id = self.canvas.create_oval(
-                (a.x - radiusCalibre) * self.scalefactor + self.canvsize / 2,
-                -(a.y - radiusCalibre) * self.scalefactor + self.canvsize / 2,
-                (a.x + radiusCalibre) * self.scalefactor + self.canvsize / 2,
-                -(a.y + radiusCalibre) * self.scalefactor + self.canvsize / 2,
-                # fill="orange" if a in self.parent.match.ausreisser else "green",
+                (a.x - radiusCalibre) * scalefactor + self.canvsize / 2,
+                -(a.y - radiusCalibre) * scalefactor + self.canvsize / 2,
+                (a.x + radiusCalibre) * scalefactor + self.canvsize / 2,
+                -(a.y + radiusCalibre) * scalefactor + self.canvsize / 2,
+                # fill="orange" if a in self.match.ausreisser else "green",
                 fill="green",
                 tag="shot",
                 activefill="cyan",
@@ -253,7 +241,7 @@ class ResultFrame(ttk.Frame):
         self.ringlabel.config(
             text=(
                 "{:.1f}".format(self.shotcircles[id].ringe)
-                if self.parent.match.zehntel
+                if self.match.settings.decimal
                 else "{:d}".format(math.floor(self.shotcircles[id].ringe))
             )
         )
@@ -265,28 +253,26 @@ class ResultFrame(ttk.Frame):
 
     def redraw_target(self):
         self.canvas.delete("ring")
-        radiusTen = Match.radius_dict[self.parent.match.scheibentyp][0]
-        radiusInnerTen = Match.radius_dict[self.parent.match.scheibentyp][1]
-        incrementRing = Match.radius_dict[self.parent.match.scheibentyp][2]
-        radiusBlack = Match.radius_dict[self.parent.match.scheibentyp][3]
-        radiusCalibre = Match.radius_dict[self.parent.match.scheibentyp][4]
+        radiusTen = RADIUS_DICT[self.match.settings.type_of_target][0]
+        incrementRing = RADIUS_DICT[self.match.settings.type_of_target][2]
+        radiusBlack = RADIUS_DICT[self.match.settings.type_of_target][3]
         w = 2 * (radiusTen + 9 * incrementRing)
-        self.scalefactor = self.canvsize / w
+        scalefactor = self.canvsize / w
         spiegel = self.canvas.create_oval(
-            (-radiusBlack) * self.scalefactor + self.canvsize / 2,
-            radiusBlack * self.scalefactor + self.canvsize / 2,
-            radiusBlack * self.scalefactor + self.canvsize / 2,
-            -radiusBlack * self.scalefactor + self.canvsize / 2,
+            (-radiusBlack) * scalefactor + self.canvsize / 2,
+            radiusBlack * scalefactor + self.canvsize / 2,
+            radiusBlack * scalefactor + self.canvsize / 2,
+            -radiusBlack * scalefactor + self.canvsize / 2,
             fill="black",
             tag="ring",
         )
 
         self.ringcircles = [
             self.canvas.create_oval(
-                (-i * incrementRing) * self.scalefactor + self.canvsize / 2,
-                -(-i * incrementRing) * self.scalefactor + self.canvsize / 2,
-                (i * incrementRing) * self.scalefactor + self.canvsize / 2,
-                -(i * incrementRing) * self.scalefactor + self.canvsize / 2,
+                (-i * incrementRing) * scalefactor + self.canvsize / 2,
+                -(-i * incrementRing) * scalefactor + self.canvsize / 2,
+                (i * incrementRing) * scalefactor + self.canvsize / 2,
+                -(i * incrementRing) * scalefactor + self.canvsize / 2,
                 outline="white" if i * incrementRing < radiusBlack else "black",
                 tag="ring",
             )
@@ -297,14 +283,14 @@ class ResultFrame(ttk.Frame):
         self.resultlabel.config(
             text=(
                 "{:.1f}".format(self.actuallist.summe)
-                if self.actuallist.zehntel
+                if self.actuallist.settings.decimal
                 else "{:d}".format(self.actuallist.summe_ganz)
             )
         )
         self.schnittlabel.config(
             text=(
                 "{:.2f}".format(self.actuallist.summe / self.actuallist.anzahl)
-                if self.actuallist.zehntel
+                if self.actuallist.settings.decimal
                 else "{:.2f}".format(
                     self.actuallist.summe_ganz / self.actuallist.anzahl
                 )
@@ -320,7 +306,7 @@ class ResultFrame(ttk.Frame):
                 self,
                 text=(
                     "{:.1f}".format(A.ringe)
-                    if self.parent.match.zehntel
+                    if self.match.settings.decimal
                     else "{:d}".format(math.floor(A.ringe))
                 ),
                 anchor="center",
@@ -338,7 +324,7 @@ class ResultFrame(ttk.Frame):
                     self,
                     text=(
                         "{:.1f}".format(S.summe)
-                        if self.parent.match.zehntel
+                        if self.match.settings.decimal
                         else "{:d}".format(S.summe_ganz)
                     ),
                     anchor="center",
@@ -355,7 +341,7 @@ class ResultFrame(ttk.Frame):
                 self,
                 text=(
                     "{:.1f}".format(self.actuallist.summe)
-                    if self.parent.match.zehntel
+                    if self.match.settings.decimal
                     else "{:d}".format(self.actuallist.summe_ganz)
                 ),
                 anchor="center",
@@ -370,8 +356,8 @@ class ResultFrame(ttk.Frame):
 
     def reset(self, back=False):
         self.generate_button["state"] = "normal"
-
-        self.actuallist = self.parent.match
+        self.match: Match = self.parent.competition.current_match
+        self.actuallist: Series | Match = self.match
         self.write_shots()
 
         # self.l_slider.set(1)
