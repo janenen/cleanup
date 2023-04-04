@@ -1,4 +1,4 @@
-from abc import ABC, abstractmethod
+from abc import ABC, abstractmethod, abstractproperty
 from dataclasses import dataclass
 import os
 from threading import Thread
@@ -47,6 +47,14 @@ class Machine(ABC):
     def get_string(self) -> str:
         ...
 
+    @abstractmethod
+    def get_reading_thread(self):
+        ...
+
+    @abstractproperty
+    def needs_setting(self) -> list[str]:
+        ...
+
     def __str__(self) -> str:
         return self.get_string()
 
@@ -66,11 +74,11 @@ class ReadingThread(Thread):
     _messages = []
     machine: Machine
     result = []
-    scheibentyp = None
+    type_of_target = None
 
     def get_reading(self):
         try:
-            return self._messages.pop(0), self.scheibentyp  # Workaround fix later
+            return self._messages.pop(0), self.type_of_target  # Workaround fix later
         except IndexError:
             return None, None
 

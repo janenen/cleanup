@@ -3,6 +3,7 @@ import serial, time, re
 from serial.tools.list_ports_common import ListPortInfo
 from threading import Thread
 from data.shot import Shot
+from .machine import ReadingThread
 
 NUL = b"\x00"
 SOH = b"\x01"
@@ -22,33 +23,13 @@ _5SER = b"\xD4"
 REST = b"\xD5"
 
 
-class ReadingThread(Thread):
-    _messages = []
-    machine: Machine
-    result = []
-    scheibentyp = None
-
-    def get_reading(self):
-        try:
-            return self._messages.pop(0), self.scheibentyp  # Workaround fix later
-        except IndexError:
-            return None, None
-
-    def is_finished(self):
-        return not self.is_alive() and not self._messages
-
-    def get_result(self) -> list[Shot]:
-        if self.is_finished():
-            return self.result
-            ret = Match()
-            ret.scheibentyp = self.scheibentyp
-            ret.fromShotlist(self.result)
-            return ret
-
+class RikaReadingThread(ReadingThread):
     def run(self):
         first = True
         regex_string = "b'(?P<serial>\\d{8})\\\\r(?P<bus_address>\\d{3})\\\\r(?P<manual_code>\\d{8})\\\\r(?P<type_of_target>\\w{2})\\\\r(?P<distance_factor>\\d{2})\\\\r(?P<count>\\d{3})\\\\r(?P<value>\\d{3})\\\\r(?P<distance>\\d{5})\\\\r(?P<x>[+-]\\d{5})\\\\r(?P<y>[+-]\\d{5})\\\\r(?P<checksum>.*)'"
         regex = re.compile(regex_string)
+        self._messages = []
+        self.result = []
         with self.machine.connection as conn:
             while len(self.result) < self.machine.settings.count:
                 conn.write(SYN)
@@ -56,7 +37,7 @@ class ReadingThread(Thread):
                 if ans == SOH:
                     groupdict = regex.match(str(conn.read(32 + 24 + 2))).groupdict()
                     if first:
-                        self.scheibentyp = groupdict["type_of_target"]
+                        self.type_of_target = groupdict["type_of_target"]
                         first = False
                     self.result.append(
                         Shot(
@@ -87,6 +68,8 @@ class Rika(Machine):
     def set_port(self, port):
         if type(port) == ListPortInfo:
             self.connection = serial.Serial(port.name, 9600, timeout=0.5)
+        else:
+            raise Exception(message="Not a serial port")
 
     def get_string(self) -> str:
         return f"Rika SAG-2 an {self._connection.name}"
@@ -127,6 +110,15 @@ class Rika(Machine):
                 raise MachineException("Teilerwertung konnte nicht übernommen werden")
 
     def get_reading_thread(self):
-        thr = ReadingThread()
+        thr = RikaReadingThread()
         thr.machine = self
         return thr
+
+    @property
+    def needs_setting(self) -> list[str]:
+        return [
+            "name",
+            "date",
+            "count",
+            "shots_per_target",
+        ]

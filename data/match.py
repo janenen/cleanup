@@ -1,8 +1,11 @@
+from dataclasses import dataclass
 from .shot import Shot
 from .series import Series
+from .shooter import Shooter
 import math
 from datetime import date
 from operator import add
+from machines.machine import Machine
 
 RADIUS_DICT = {
     "LP": (575, 250, 800, 2975, 225),
@@ -23,12 +26,21 @@ RADIUS_DICT = {
 }  #
 
 
+@dataclass
 class MatchSettings:
-    pass
+    competition: str
+    decimal: bool
+    count: int
+    date: str
+    shooter: Shooter
+    type_of_target: str
 
 
 class Match:
-    def __init__(self):
+    settings: MatchSettings
+
+    def __init__(self, settings):
+        self.settings = settings
         self.series = []
         self.anzahl = 0
         self.summe = 0
@@ -37,14 +49,18 @@ class Match:
         self.ablageHT = 0
         self.best = Shot()
         self.worst = Shot()
-        self.zehntel = False
-        self.bewerb = "Training"
-        self.name = ""
-        self.verein = ""
-        self.scheibentyp = ""
-        self.datum = date.today().strftime("%d.%m.%Y")
+        # self.zehntel = False
+        # self.bewerb = "Training"
+        # self.name = ""
+        # self.verein = ""
+
+        # self.datum = date.today().strftime("%d.%m.%Y")
         self.ausreisser = []
         self.verteilung = [0] * 11
+
+    @property
+    def result(self):
+        return self.summe if self.settings.decimal else self.summe_ganz
 
     def update(self):
         self.anzahl = 0
@@ -96,19 +112,13 @@ class Match:
         self.series.append(series)
         self.update()
 
-    def fromShotlist(self, shotlist, zehntel=None):
-        if zehntel != None:
-            self.zehntel = zehntel
+    def fromShotlist(self, shotlist):
         self.series = []
         if len(shotlist) > 0:
             for i in range(0, int((len(shotlist) - 1) / 10) + 1):
-                self.addSeries(Series(zehntel))
+                self.addSeries(Series(self.settings.decimal))
             for n, shot in enumerate(shotlist):
                 self.series[int(n / 10)].addShot(shot)
-        self.update()
-
-    def setZehntel(self, zehntel):
-        self.zehntel = zehntel
         self.update()
 
     def countRing(self, wert):
@@ -120,12 +130,7 @@ class Match:
 
     def __str__(self):
         retval = ""
-        for ser in self.series:
-            retval = retval + str(ser) + "\r\n"
-        return retval
-
-    def __repr__(self):
-        retval = ""
+        retval += f"{self.settings.shooter.name} {self.settings.type_of_target} {self.settings.date}\r\n"
         for ser in self.series:
             retval = retval + str(ser) + "\r\n"
         return retval

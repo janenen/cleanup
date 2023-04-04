@@ -1,10 +1,11 @@
 import tkinter as tk
 from tkinter import ttk
 from idlelib.tooltip import Hovertip
-import machines
+from machines import find_machines
+from machines.machine import MachineSettings
 
 
-class SelectPortFrame(ttk.Frame):
+class MaschineSelectionFrame(ttk.Frame):
     def __init__(self, container, parent):
         super().__init__(container)
         self.parent = parent
@@ -31,26 +32,31 @@ class SelectPortFrame(ttk.Frame):
         self.grid(column=0, row=0, padx=5, pady=5, sticky="nsew")
 
     def reload(self):
-        self.available_machines = machines.find_machines()
+        self.available_machines = find_machines()
         self.portlistbox.delete("0", "end")
         for machine in self.available_machines:
             self.portlistbox.insert("end", str(machine))
 
         self.parent.ok_button["state"] = "disabled"
 
-    def test(self, event):
+    def select(self, event):
         """Handle list click event"""
         item = self.portlistbox.curselection()
         if not item:
             return
-        print(item[0])
-        self.parent.quelle = self.available_machines[item[0]]
+        self.parent.competition.source = self.available_machines[item[0]]
+        self.parent.competition.source.settings = MachineSettings(
+            count=self.parent.competition.settings.count,
+            shots_per_target=self.parent.competition.settings.shots_per_target,
+            type_of_target=self.parent.competition.settings.type_of_target,
+            filepath=None,
+        )
         self.parent.ok_button["state"] = "normal"
         self.portlistbox.unbind("<<ListboxSelect>>")
         self.parent.actionOK()
 
     def reset(self, back=False):
         self.test_label.config(text="Port auswählen")
-        self.portlistbox.bind("<<ListboxSelect>>", self.test)
+        self.portlistbox.bind("<<ListboxSelect>>", self.select)
         self.onreset = not back
         self.reload()

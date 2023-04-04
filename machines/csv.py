@@ -1,3 +1,4 @@
+from tkinter import filedialog
 from .machine import (
     VirtualMachine,
     MachineException,
@@ -12,15 +13,16 @@ shot_regex_string = "(?P<value>\\d*.\\d);(?P<distance>\\d*.\\d*);(?P<x>-?\\d*.\\
 
 class CSVReadingThread(ReadingThread):
     def run(self):
+        self._messages = []
+        self.result = []
         with open(self.machine.settings.filepath, "r") as infile:
             line = infile.readline()
-            print(line)
             groupdict = re.match(header_regex_string, line).groupdict()
             datum = groupdict[
                 "date"
             ]  # ignore for now (refactoring of settings required)
             count = int(groupdict["count"])
-            self.scheibentyp = groupdict["type_of_target"]
+            self.type_of_target = groupdict["type_of_target"]
 
             for line in infile:
                 line = line.replace(",", ".")
@@ -41,6 +43,10 @@ class CSV(VirtualMachine):
         return "CSV aus Datei"
 
     def config(self):
+        self.settings.filepath = filedialog.askopenfilename(
+            initialdir="./",
+            filetypes=[("CSV Dateien", "*.csv")],
+        )
         if not os.path.isfile(self.settings.filepath):
             raise MachineException(
                 f"File {self.settings.filepath} does not exist or is not a file"
@@ -65,7 +71,6 @@ class CSV(VirtualMachine):
     @property
     def needs_setting(self) -> list[str]:
         return [
+            "name",
             "date",
-            "count",
-            "shots_per_target",
         ]

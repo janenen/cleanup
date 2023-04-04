@@ -2,11 +2,7 @@ import tkinter as tk
 from tkinter import ttk
 import time
 from data.match import RADIUS_DICT
-from machines.rika import Rika
-from machines.csv import CSV
-from machines.qsd import QSD
-from machines.qr import QR
-from machines.machine import MachineSettings, MachineException
+from machines.machine import MachineException
 
 
 class ReadingFrame(ttk.Frame):
@@ -30,28 +26,13 @@ class ReadingFrame(ttk.Frame):
         self.grid(column=0, row=0, padx=5, pady=5, sticky="nsew")
 
     def actionStart(self):
-        print(self.parent.quelle)
-
-        self.parent.quelle.settings = MachineSettings(
-            count=self.parent.anzahl if type(self.parent.quelle) == Rika else None,
-            shots_per_target=self.parent.proscheibe
-            if type(self.parent.quelle) == Rika
-            else None,
-            type_of_target=self.parent.match.scheibentyp
-            if type(self.parent.quelle) == QSD
-            else None,
-            filepath=self.parent.inputfile
-            if type(self.parent.quelle) == CSV or type(self.parent.quelle) == QSD
-            else self.parent.inputstring
-            if type(self.parent.quelle) == QR
-            else None,
-        )
+        machine = self.parent.competition.source
         self.statusbox.insert("end", "Port wird geöffnet...")
         self.container.update()
         self.statusbox.insert("end", "Einstellungen werden übergeben...")
         self.container.update()
         try:
-            self.parent.quelle.config()
+            machine.config()
             config_success = True
         except MachineException as e:
             self.statusbox.insert("end", e.message)
@@ -61,11 +42,11 @@ class ReadingFrame(ttk.Frame):
         if config_success:
             self.statusbox.insert("end", "Scheiben eingeben!")
             self.container.update()
-            reader = self.parent.quelle.get_reading_thread()
+            reader = machine.get_reading_thread()
             reader.start()
             first = True
             while not reader.is_finished():
-                shot, self.parent.match.scheibentyp = reader.get_reading()
+                shot, self.type_of_target = reader.get_reading()
                 if shot == None:
                     time.sleep(0.5)
                 else:
@@ -76,7 +57,7 @@ class ReadingFrame(ttk.Frame):
                     self.container.update()
             self.statusbox.insert("end", "Einlesen abgeschlossen")
             self.container.update()
-            self.parent.match.fromShotlist(reader.get_result())
+            self.parent.competition.current_match.fromShotlist(reader.get_result())
         else:
             return
 
@@ -86,7 +67,7 @@ class ReadingFrame(ttk.Frame):
         self.parent.actionOK()
 
     def draw_shot(self, shot):
-        radiusCalibre = RADIUS_DICT[self.parent.match.scheibentyp][4]
+        radiusCalibre = RADIUS_DICT[self.type_of_target][4]
         self.canvas.create_oval(
             (shot.x - radiusCalibre) * self.scalefactor + self.canvsize / 2,
             -(shot.y - radiusCalibre) * self.scalefactor + self.canvsize / 2,
@@ -100,9 +81,9 @@ class ReadingFrame(ttk.Frame):
 
     def redraw_target(self):
         self.clear_target()
-        radiusTen = RADIUS_DICT[self.parent.match.scheibentyp][0]
-        incrementRing = RADIUS_DICT[self.parent.match.scheibentyp][2]
-        radiusBlack = RADIUS_DICT[self.parent.match.scheibentyp][3]
+        radiusTen = RADIUS_DICT[self.type_of_target][0]
+        incrementRing = RADIUS_DICT[self.type_of_target][2]
+        radiusBlack = RADIUS_DICT[self.type_of_target][3]
         w = 2 * (radiusTen + 9 * incrementRing)
         self.scalefactor = self.canvsize / w
         spiegel = self.canvas.create_oval(

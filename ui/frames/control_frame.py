@@ -1,80 +1,55 @@
 import tkinter as tk
 from tkinter import ttk
-import serial
-import serial.tools.list_ports
-import configparser
-from data.match import Match
-from ui.frames.select_file_frame import SelectFileFrame
+from data.competition import Competition
 from ui.frames.select_user_frame import SelectUserFrame
-from ui.frames.fsk_frame import FSKFrame
 from ui.frames.reading_frame import ReadingFrame
-from ui.frames.settings_frame import SettingsFrame
-from ui.frames.select_port_frame import SelectPortFrame
-from ui.frames.result_frame import ResultFrame
-from ui.frames.string_frame import StringFrame
-from machines.rika import Rika
-from machines.disag import Disag
-from machines.csv import CSV
-from machines.qsd import QSD
-from machines.qr import QR
-
-# from analysis_frame import AnalysisFrame
+from ui.frames.settings_frame import UserSettingsFrame
+from ui.frames.machine_selection_frame import MaschineSelectionFrame
+from ui.frames.user_result_frame import UserResultFrame
+from ui.frames.competition_settings_frame import CompetitionSettingsFrame
+from ui.frames.competition_result_frame import CompetitionResultFrame
 
 
 class ControlFrame(ttk.Frame):
     def actionOK(self):
         back = False
-        if self.nextframe == "user":
-            self.nextframe = "port"
+        if self.nextframe == "competition":
+            if self.frames["competition"].parseInput():
+                self.nextframe = "machine"
 
-        elif self.nextframe == "port":
-            if type(self.quelle) == Rika or type(self.quelle) == Disag:
-                self.nextframe = "settings"
-            elif type(self.quelle) == QR:
-                self.nextframe = "string"
-            elif type(self.quelle) == CSV or type(self.quelle) == QSD:
-                self.nextframe = "file"
+        elif self.nextframe == "machine":
+            self.nextframe = "user"
 
-        elif self.nextframe == "file":
-            self.nextframe = "settings"
-
-        elif self.nextframe == "string":
-            if self.frames["string"].parse_text():
-                self.nextframe = "settings"
+        # loop while no new entry is available
+        elif self.nextframe == "user":
+            if self.frames["user"].new_user():
+                self.nextframe = "user_settings"
             else:
-                self.nextframe == "string"
-
-        elif self.nextframe == "settings":
-            if self.frames["settings"].parseInput():
                 self.nextframe = "reading"
-            else:
-                self.nextframe = "user"
+
+        elif self.nextframe == "user_settings":
+            if self.frames["user_settings"].parseInput():
+                self.nextframe = "reading"
 
         elif self.nextframe == "reading":
-            if self.fsk:
-                self.nextframe = "fsk"
-            else:
-                self.nextframe = "result"
+            self.nextframe = "match_result"
 
-        elif self.nextframe == "fsk":
-            self.nextframe = "result"
-
-        # elif self.nextframe == "result":
-        #    self.nextframe = "analysis"
-        # elif self.nextframe == "analysis":
-        elif self.nextframe == "result":
-            if self.fsk:
-                MsgBox = tk.messagebox.askquestion(
-                    "Programm schließen",
-                    "Programm schließen?\nAlles gespeichert?\nFehlschussskasse bezahlt?",
-                    icon="error",
-                )
+        elif self.nextframe == "match_result":
+            MsgBox = tk.messagebox.askquestion(
+                "Weiterer Teilnehmer?",
+                "Weiterer Teilnehmer hinzufügen?",
+                icon="error",
+            )
+            if MsgBox == "yes":
+                self.nextframe = "user"
             else:
-                MsgBox = tk.messagebox.askquestion(
-                    "Programm schließen",
-                    "Programm schließen?\nAlles gespeichert?",
-                    icon="error",
-                )
+                self.nextframe = "competition_result"
+        elif self.nextframe == "competition_result":
+            MsgBox = tk.messagebox.askquestion(
+                "Programm schließen",
+                "Programm schließen?\nAlles gespeichert?",
+                icon="error",
+            )
             if MsgBox == "yes":
                 self.container.quit()
             else:
@@ -82,37 +57,22 @@ class ControlFrame(ttk.Frame):
         self.change_frame(back)
 
     def actionBack(self):
-        if self.nextframe == "result":
+        if self.nextframe == "match_result":
             MsgBox = tk.messagebox.askquestion(
                 "Alles gespeichert?",
                 "Alles gespeichert?",
                 icon="error",
             )
-            if MsgBox == "yes":
-                self.reset()
-                self.nextframe = "user"
-            else:
+            if MsgBox == "no":
                 return
-        # elif self.nextframe == "analysis":
-        #    self.nextframe = "result"
-        elif self.nextframe == "reading":
-            # close connection
-            self.ser.write(b"\xd0")
-            self.ser.read(1)
-            self.ser.close()
-            self.nextframe = "user"
-        else:
-            self.nextframe = "user"
+        self.reset()
+        self.nextframe = "competition"
         self.change_frame(back=True)
 
     def __init__(self, container):
         super().__init__(container)
-        # self['text'] = 'Options'
         self.container = container
-
-        self.nextframe = "user"
-        self.ser = serial.Serial()
-
+        self.nextframe = "competition"
         #  buttons
         self.back_button = ttk.Button(self, text="Zurück", command=self.actionBack)
         self.back_button.grid(column=1, row=0, padx=5, pady=5)
@@ -120,32 +80,20 @@ class ControlFrame(ttk.Frame):
         self.ok_button.grid(column=2, row=0, padx=5, pady=5)
         self.grid(column=0, row=1, padx=5, pady=5, sticky="se")
         self.reset()
-
         # initialize frames
         self.frames = {
-            "port": SelectPortFrame(container, self),
-            "settings": SettingsFrame(container, self),
-            "reading": ReadingFrame(container, self),
-            "result": ResultFrame(container, self),
+            "competition": CompetitionSettingsFrame(container, self),
+            "machine": MaschineSelectionFrame(container, self),
             "user": SelectUserFrame(container, self),
-            "file": SelectFileFrame(container, self),
-            "fsk": FSKFrame(container, self),
-            "string": StringFrame(container, self),
-            # "analysis": AnalysisFrame(container, self),
+            "user_settings": UserSettingsFrame(container, self),
+            "reading": ReadingFrame(container, self),
+            "match_result": UserResultFrame(container, self),
+            "competition_result": CompetitionResultFrame(container, self),
         }
         self.change_frame()
 
     def reset(self):
-        self.anzahl = 40
-        self.proscheibe = 1
-        self.match = Match()
-        self.userconfig = configparser.ConfigParser()
-        self.usersection = ""
-        self.userconfigpath = "./schuetzen.ini"
-        self.quelle = "maschine"
-        self.inputfile = ""
-        self.fsk = False
-        self.inputstring = ""
+        self.competition: Competition = None
 
     def change_frame(self, back=False):
         frame = self.frames[self.nextframe]

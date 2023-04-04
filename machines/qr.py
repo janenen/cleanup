@@ -5,6 +5,7 @@ from .machine import (
 )
 from data.shot import Shot
 import re
+from tkinter import simpledialog
 
 header_regex_string = "\d{8}\w{2}"
 shots_regex_string = (
@@ -14,6 +15,9 @@ shots_regex_string = (
 
 class QRReadingThread(ReadingThread):
     def run(self):
+        self._messages = []
+        self.result = []
+
         def unmap_ring(instr: str) -> str:
             return (
                 instr.replace("A", "10.")
@@ -32,10 +36,9 @@ class QRReadingThread(ReadingThread):
         m = self.machine.settings.filepath[2:4]
         d = self.machine.settings.filepath[0:2]
         datum = f"{d}.{m}.{y}"  # ignore for now (refactoring of settings required)
-        self.scheibentyp = self.machine.settings.filepath[8:10]
+        self.type_of_target = self.machine.settings.filepath[8:10]
         str_shots = self.machine.settings.filepath[10:]
         for shot in re.finditer(shots_regex_string, str_shots):
-            print("Ringe:" + unmap_ring(shot["ring"]) + shot["tenth"])
             self.result.append(
                 Shot(
                     ringe=float(unmap_ring(shot["ring"]) + shot["tenth"]),
@@ -52,6 +55,9 @@ class QR(VirtualMachine):
         return "QR-Code aus Eingabe"
 
     def config(self):
+        self.settings.filepath = simpledialog.askstring(
+            title="QR-Code", prompt="QR-Code eingeben"
+        )
         if not re.search(shots_regex_string, self.settings.filepath):
             raise MachineException("Format of header of QR-Code does not match")
         if not re.search(shots_regex_string, self.settings.filepath):
@@ -61,3 +67,10 @@ class QR(VirtualMachine):
         thr = QRReadingThread()
         thr.machine = self
         return thr
+
+    @property
+    def needs_setting(self) -> list[str]:
+        return [
+            "name",
+            "date",
+        ]

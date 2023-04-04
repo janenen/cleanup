@@ -1,3 +1,4 @@
+from tkinter import filedialog
 from .machine import (
     VirtualMachine,
     MachineException,
@@ -11,7 +12,9 @@ import struct
 
 class QSDReadingThread(ReadingThread):
     def run(self):
-        self.scheibentyp = self.machine.settings.type_of_target
+        self._messages = []
+        self.result = []
+        self.type_of_target = self.machine.settings.type_of_target
         with open(self.machine.settings.filepath, "rb") as infile:
             bytes = infile.read(5 * 8)
             while bytes:
@@ -35,6 +38,10 @@ class QSD(VirtualMachine):
         return "QSD aus Datei"
 
     def config(self):
+        self.settings.filepath = filedialog.askopenfilename(
+            initialdir="./",
+            filetypes=[("QuickShot Dateien", "*.qsd")],
+        )
         if not os.path.isfile(self.settings.filepath):
             raise MachineException(
                 f"File {self.settings.filepath} does not exist or is not a file"
@@ -44,3 +51,7 @@ class QSD(VirtualMachine):
         thr = QSDReadingThread()
         thr.machine = self
         return thr
+
+    @property
+    def needs_setting(self) -> list[str]:
+        return ["name", "date", "type_of_target"]

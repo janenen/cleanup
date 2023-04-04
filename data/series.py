@@ -43,13 +43,11 @@ class Series:
     def getOutliers(self, l=0.5):
         self.ausreisser = []
         data = np.array([[A.x, A.y] for A in self.shots])
-        # print(data)
         scores = (
             loop.LocalOutlierProbability(data, n_neighbors=3)
             .fit()
             .local_outlier_probabilities
         )
-        # print(scores)
         for shot, prob in zip(self.shots, scores):
             if prob > l:
                 self.ausreisser.append(shot)
