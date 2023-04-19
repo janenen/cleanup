@@ -3,15 +3,17 @@ import tkinter as tk
 from tkinter import ttk
 import os
 from data.shooter import Shooter
+from data.user import User, UserSettings, UserList
 
 
 class SelectUserFrame(ttk.Frame):
+    userlist: UserList
+
     def __init__(self, container, parent):
         super().__init__(container)
         self.parent = parent
-        self.userconfig = configparser.ConfigParser()
-        self.usersection = ""
         self.userconfigpath = "./schuetzen.ini"
+        self.userjsonpath = "./users.json"
 
         options = {"padx": 5, "pady": 0}
         self.scrollbar = tk.Scrollbar(self)
@@ -37,16 +39,14 @@ class SelectUserFrame(ttk.Frame):
     def select(self, event):
         self.new_shooter = False
         selection = self.userlistbox.curselection()
-
+        print(selection)
         if len(selection) > 0:
             n = selection[0]
-            if n < len(self.userconfig.sections()):
-                self.usersection = sorted(
-                    self.userconfig.sections(), key=self.get_niceness, reverse=True
+            if n < len(self.userlist.users):
+                self.usersection: User = sorted(
+                    self.userlist.users, key=self.get_niceness, reverse=True
                 )[n]
-                self.test_label.config(
-                    text=self.userconfig.get(self.usersection, "Name")
-                )
+                self.test_label.config(text=self.usersection.name)
             else:
                 self.new_shooter = True
                 self.test_label.config(text="Neuer Schütze")
@@ -56,31 +56,52 @@ class SelectUserFrame(ttk.Frame):
     def reset(self, back=False):
         self.test_label.config(text="Schütze auswählen")
 
-        if not os.path.exists(self.userconfigpath):
-            self.userconfig["DEFAULT"] = {
-                "Name": "Neuer Schütze",
-                "Verein": "",
-                "Mannschaft": "",
-                "niceness": "0",
-            }
-            with open(self.userconfigpath, "w") as configfile:
-                self.userconfig.write(configfile)
-        self.userconfig.read(self.userconfigpath)
+        if os.path.exists(self.userjsonpath):  # case start with existing user.json
+            with open(self.userjsonpath, "r") as json_file:
+                self.userlist = UserList.from_json(json_file.read())
+
+        elif os.path.exists(self.userconfigpath):  # legacy mode
+            userconfig = configparser.ConfigParser()
+            userconfig.read(self.userconfigpath)
+            self.userlist = UserList()
+            for section in userconfig.sections():
+                print(section)
+                if not (section == "Neu" or section == "NeuerSchütze"):
+                    shooter = Shooter(
+                        name=userconfig.get(section, "Name"),
+                        club=userconfig.get(section, "Verein"),
+                        team=None,
+                    )
+                    settings = UserSettings(
+                        niceness=userconfig.getint(section, "niceness", fallback=0),
+                        extended_analysis=userconfig.getboolean(
+                            section, "erweitert", fallback=False
+                        ),
+                    )
+                    self.userlist.users.append(User(data=shooter, settings=settings))
+            with open(self.userjsonpath, "w") as json_file:
+                json_file.write(self.userlist.to_json())
+            # os.remove(self.userconfigpath)
+        else:  # first start
+            self.userlist = UserList()
 
         self.userlistbox.delete("0", "end")
 
-        for section in sorted(
-            self.userconfig.sections(), key=self.get_niceness, reverse=True
-        ):
-            self.userlistbox.insert("end", self.userconfig.get(section, "Name"))
+        for user in sorted(self.userlist.users, key=self.get_niceness, reverse=True):
+            self.userlistbox.insert("end", user.name)
+
+        # for section in sorted(
+        #    self.userconfig.sections(), key=self.get_niceness, reverse=True
+        # ):
+        #    self.userlistbox.insert("end", self.userconfig.get(section, "Name"))
         self.userlistbox.insert("end", "Neuer Schütze")
         self.userlistbox.bind("<<ListboxSelect>>", self.select)
         self.parent.back_button["state"] = "disabled"
         self.parent.ok_button["state"] = "disabled"
 
-    def get_niceness(self, section):
-        if self.userconfig.has_option(section, "niceness"):
-            return self.userconfig.getint(section, "niceness")
+    def get_niceness(self, user: User):
+        if user.niceness:
+            return user.niceness
         else:
             return 0
 
@@ -89,8 +110,8 @@ class SelectUserFrame(ttk.Frame):
         if not self.new_shooter:
             self.parent.competition.add_match(
                 Shooter(
-                    name=self.userconfig[self.usersection]["Name"],
-                    club=self.userconfig[self.usersection]["Verein"],
+                    name=self.usersection.name,
+                    club=self.usersection.club,
                     team=None,
                 )
             )

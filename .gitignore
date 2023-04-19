@@ -4,3 +4,4 @@ ui/frames/__pycache__
 output
 build
 dist
+users.json

@@ -11,6 +11,8 @@ from ui.frames.competition_result_frame import CompetitionResultFrame
 
 
 class ControlFrame(ttk.Frame):
+    competition: Competition
+
     def actionOK(self):
         back = False
         if self.nextframe == "competition":
@@ -93,7 +95,7 @@ class ControlFrame(ttk.Frame):
         self.change_frame()
 
     def reset(self):
-        self.competition: Competition = None
+        self.competition = None
 
     def change_frame(self, back=False):
         frame = self.frames[self.nextframe]

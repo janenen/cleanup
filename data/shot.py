@@ -1,5 +1,21 @@
+from dataclasses import dataclass
+from dataclasses_json import dataclass_json
+import math
+
+
+@dataclass_json
+@dataclass
 class Shot:
-    def __init__(self, **kwargs):
+    ringe: float
+    teiler: float
+    x: float
+    y: float
+
+    @property
+    def ringe_ganz(self):
+        return math.floor(self.ringe)
+
+    """def __init__(self, **kwargs):
         # def __init__(self,ringe,teiler,x,y):
         self.ringe = kwargs.get("ringe", None)
         self.teiler = kwargs.get("teiler", 9999999)
@@ -19,6 +35,7 @@ class Shot:
 
     def __repr__(self):
         return f"{self.ringe}"
+    """
 
     def __lt__(self, other):
         return self.teiler > other.teiler

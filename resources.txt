@@ -7,3 +7,4 @@ matplotlib
 seaborn
 qrcode
 black
+dataclasses_json

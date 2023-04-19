@@ -103,7 +103,8 @@ class PDFgen:
                 image,
                 coord,
                 radiusCalibre,
-                orange if shot in series.ausreisser else green,
+                # orange if shot in series.ausreisser else green,
+                green,
                 filled,
             )
             cv2.circle(image, coord, radiusCalibre, black, 8)

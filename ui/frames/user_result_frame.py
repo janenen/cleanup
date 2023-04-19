@@ -1,7 +1,6 @@
 import tkinter as tk
 from tkinter import ttk
 from datetime import datetime
-import math
 from data.series import Series
 import pdfgenerator
 from idlelib.tooltip import Hovertip
@@ -10,6 +9,8 @@ from configparser import ConfigParser
 
 
 class UserResultFrame(ttk.Frame):
+    actuallist: Series
+
     def __init__(self, container, parent):
         super().__init__(container)
         self.parent = parent
@@ -141,36 +142,42 @@ class UserResultFrame(ttk.Frame):
 
     def actionFore(self):
         self.i += 1
-        if self.i == 0 or self.i > len(self.match.series):
+        if self.i == 0 or self.i > len(self.match.shots) / 10:
             self.i = 0
-            self.actuallist = self.match
+            self.actuallist = Series(self.match.shots)
             self.serieslabel.config(text="Gesammt")
             self.resultlabelframe.config(text="Gesammtergebnis")
             self.redraw_shots()
             self.write_shots()
         else:
-            self.actuallist = self.match.series[self.i - 1]
-            self.serieslabel.config(text="Serie {:d}".format(self.i))
-            self.resultlabelframe.config(text="Serie {:d}".format(self.i))
+            start_index = (self.i - 1) * 10
+            end_index = start_index + 10
+            self.actuallist = Series(self.match.shots[start_index:end_index])
+            self.serieslabel.config(text=f"Serie {self.i}")
+            self.resultlabelframe.config(text=f"Serie {self.i}")
             self.redraw_shots()
             self.write_shots()
 
     def actionBack(self):
         self.i -= 1
         if self.i < 0:
-            self.i = len(self.match.series)
-            self.actuallist = self.match.series[self.i - 1]
-            self.serieslabel.config(text="Serie {:d}".format(self.i))
-            self.resultlabelframe.config(text="Serie {:d}".format(self.i))
+            self.i = len(self.match.shots) // 10 + 1
+            start_index = (self.i - 1) * 10
+            end_index = start_index + 10
+            self.actuallist = Series(self.match.shots[start_index:end_index])
+            self.serieslabel.config(text=f"Serie {self.i}")
+            self.resultlabelframe.config(text=f"Serie {self.i}")
         elif self.i == 0:
-            self.i = len(self.match.series)
-            self.actuallist = self.match
+            # self.i = len(self.match.shots)/10
+            self.actuallist = Series(self.match.shots)
             self.serieslabel.config(text="Gesammt")
             self.resultlabelframe.config(text="Gesammtergebnis")
         else:
-            self.actuallist = self.match.series[self.i - 1]
-            self.serieslabel.config(text="Serie {:d}".format(self.i))
-            self.resultlabelframe.config(text="Serie {:d}".format(self.i))
+            start_index = (self.i - 1) * 10
+            end_index = start_index + 10
+            self.actuallist = Series(self.match.shots[start_index:end_index])
+            self.serieslabel.config(text=f"Serie {self.i}")
+            self.resultlabelframe.config(text=f"Serie {self.i}")
         self.redraw_shots()
         self.write_shots()
 
@@ -222,18 +229,18 @@ class UserResultFrame(ttk.Frame):
         # self.canvas.yview_moveto(self.origY)
         w = 2 * (radiusTen + 9 * incrementRing)
         scalefactor = self.canvsize / w
-        for a in self.actuallist:
+        for shot in self.actuallist:
             id = self.canvas.create_oval(
-                (a.x - radiusCalibre) * scalefactor + self.canvsize / 2,
-                -(a.y - radiusCalibre) * scalefactor + self.canvsize / 2,
-                (a.x + radiusCalibre) * scalefactor + self.canvsize / 2,
-                -(a.y + radiusCalibre) * scalefactor + self.canvsize / 2,
+                (shot.x - radiusCalibre) * scalefactor + self.canvsize / 2,
+                -(shot.y - radiusCalibre) * scalefactor + self.canvsize / 2,
+                (shot.x + radiusCalibre) * scalefactor + self.canvsize / 2,
+                -(shot.y + radiusCalibre) * scalefactor + self.canvsize / 2,
                 # fill="orange" if a in self.match.ausreisser else "green",
                 fill="green",
                 tag="shot",
                 activefill="cyan",
             )
-            self.shotcircles[id] = a
+            self.shotcircles[id] = shot
             self.canvas.tag_bind(id, "<Enter>", self.update_text)
 
     def update_text(self, event):
@@ -242,7 +249,7 @@ class UserResultFrame(ttk.Frame):
             text=(
                 "{:.1f}".format(self.shotcircles[id].ringe)
                 if self.match.settings.decimal
-                else "{:d}".format(math.floor(self.shotcircles[id].ringe))
+                else f"{self.shotcircles[id].ringe_ganz}"
             )
         )
         self.xlabel.config(text="{:.2f}".format(self.shotcircles[id].x / 100))
@@ -283,14 +290,14 @@ class UserResultFrame(ttk.Frame):
         self.resultlabel.config(
             text=(
                 "{:.1f}".format(self.actuallist.summe)
-                if self.actuallist.settings.decimal
+                if self.match.settings.decimal
                 else "{:d}".format(self.actuallist.summe_ganz)
             )
         )
         self.schnittlabel.config(
             text=(
                 "{:.2f}".format(self.actuallist.summe / self.actuallist.anzahl)
-                if self.actuallist.settings.decimal
+                if self.match.settings.decimal
                 else "{:.2f}".format(
                     self.actuallist.summe_ganz / self.actuallist.anzahl
                 )
@@ -301,13 +308,13 @@ class UserResultFrame(ttk.Frame):
         for label in self.shotlabellist:
             label.destroy()
         self.shotlabellist = []
-        for n, A in enumerate(self.actuallist):
+        for n, shot in enumerate(self.match.shots):
             label = ttk.Label(
                 self,
                 text=(
-                    "{:.1f}".format(A.ringe)
+                    "{:.1f}".format(shot.ringe)
                     if self.match.settings.decimal
-                    else "{:d}".format(math.floor(A.ringe))
+                    else "{:d}".format(shot.ringe_ganz)
                 ),
                 anchor="center",
             )
@@ -318,46 +325,66 @@ class UserResultFrame(ttk.Frame):
                 width=self.canvsize / 6,
             )
             self.shotlabellist.append(label)
-        if isinstance(self.actuallist, Match):
-            for n, S in enumerate(self.actuallist.series):
+            if n > 0 and (n + 1) % 10 == 0:
+                end_index = n + 1
+                start_index = end_index - 10
+                current_series = Series(self.match.shots[start_index:end_index])
                 label = ttk.Label(
                     self,
                     text=(
-                        "{:.1f}".format(S.summe)
+                        "{:.1f}".format(current_series.summe)
                         if self.match.settings.decimal
-                        else "{:d}".format(S.summe_ganz)
+                        else "{:d}".format(current_series.summe_ganz)
                     ),
                     anchor="center",
                 )
                 label.place(
-                    x=(15 / 8 + n / 6) * self.canvsize,
+                    x=(15 / 8 + (n // 10) / 6) * self.canvsize,
                     y=(11 / 11) * self.canvsize,
                     height=self.canvsize / 11,
                     width=self.canvsize / 6,
                 )
                 self.shotlabellist.append(label)
-        else:
-            label = ttk.Label(
-                self,
-                text=(
-                    "{:.1f}".format(self.actuallist.summe)
-                    if self.match.settings.decimal
-                    else "{:d}".format(self.actuallist.summe_ganz)
-                ),
-                anchor="center",
-            )
-            label.place(
-                x=(15 / 8) * self.canvsize,
-                y=self.canvsize,
-                height=self.canvsize / 11,
-                width=self.canvsize / 6,
-            )
-            self.shotlabellist.append(label)
+        # if isinstance(self.actuallist, Match):
+        #    for n, S in enumerate(self.actuallist.series):
+        #        label = ttk.Label(
+        #            self,
+        #            text=(
+        #                "{:.1f}".format(S.summe)
+        #                if self.match.settings.decimal
+        #                else "{:d}".format(S.summe_ganz)
+        #            ),
+        #            anchor="center",
+        #        )
+        #        label.place(
+        #            x=(15 / 8 + n / 6) * self.canvsize,
+        #            y=(11 / 11) * self.canvsize,
+        #            height=self.canvsize / 11,
+        #            width=self.canvsize / 6,
+        #        )
+        #        self.shotlabellist.append(label)
+        # else:
+        #    label = ttk.Label(
+        #        self,
+        #        text=(
+        #            "{:.1f}".format(self.actuallist.summe)
+        #            if self.match.settings.decimal
+        #            else "{:d}".format(self.actuallist.summe_ganz)
+        #        ),
+        #        anchor="center",
+        #    )
+        #    label.place(
+        #        x=(15 / 8) * self.canvsize,
+        #        y=self.canvsize,
+        #        height=self.canvsize / 11,
+        #        width=self.canvsize / 6,
+        #    )
+        #    self.shotlabellist.append(label)
 
     def reset(self, back=False):
         self.generate_button["state"] = "normal"
         self.match: Match = self.parent.competition.current_match
-        self.actuallist: Series | Match = self.match
+        self.actuallist = Series(self.match.shots)
         self.write_shots()
 
         # self.l_slider.set(1)

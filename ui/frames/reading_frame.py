@@ -57,7 +57,7 @@ class ReadingFrame(ttk.Frame):
                     self.container.update()
             self.statusbox.insert("end", "Einlesen abgeschlossen")
             self.container.update()
-            self.parent.competition.current_match.fromShotlist(reader.get_result())
+            self.parent.competition.current_match.shots = reader.get_result()
         else:
             return
 
