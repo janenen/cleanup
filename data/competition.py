@@ -1,4 +1,6 @@
 from datetime import date
+
+from data.shot import Shot
 from .match import Match, MatchSettings
 from .shooter import Shooter
 from machines.machine import Machine
@@ -22,7 +24,7 @@ class Competition:
     def __init__(self, settings):
         self.settings = settings
 
-    def add_match(self, shooter: Shooter):
+    def add_match(self, shooter: Shooter, shots: list[Shot]):
         new_match = Match(
             MatchSettings(
                 competition=self.settings.name,
@@ -33,7 +35,7 @@ class Competition:
                 type_of_target=self.settings.type_of_target,
             )
         )
-
+        new_match.shots = shots
         self.entries.append(new_match)
         self._current_match = self.entries[-1]
 

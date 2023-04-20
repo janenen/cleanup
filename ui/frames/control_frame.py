@@ -1,6 +1,7 @@
 import tkinter as tk
 from tkinter import ttk
 from data.competition import Competition
+from data.user import User, UserList
 from ui.frames.select_user_frame import SelectUserFrame
 from ui.frames.reading_frame import ReadingFrame
 from ui.frames.settings_frame import UserSettingsFrame
@@ -12,6 +13,8 @@ from ui.frames.competition_result_frame import CompetitionResultFrame
 
 class ControlFrame(ttk.Frame):
     competition: Competition
+    userlist: UserList
+    user: User
 
     def actionOK(self):
         back = False

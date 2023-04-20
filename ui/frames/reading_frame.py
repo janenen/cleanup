@@ -2,7 +2,7 @@ import tkinter as tk
 from tkinter import ttk
 import time
 from data.match import RADIUS_DICT
-from machines.machine import MachineException
+from machines.machine import MachineException, ReadingThread
 
 
 class ReadingFrame(ttk.Frame):
@@ -42,7 +42,7 @@ class ReadingFrame(ttk.Frame):
         if config_success:
             self.statusbox.insert("end", "Scheiben eingeben!")
             self.container.update()
-            reader = machine.get_reading_thread()
+            reader: ReadingThread = machine.get_reading_thread()
             reader.start()
             first = True
             while not reader.is_finished():
@@ -57,7 +57,9 @@ class ReadingFrame(ttk.Frame):
                     self.container.update()
             self.statusbox.insert("end", "Einlesen abgeschlossen")
             self.container.update()
-            self.parent.competition.current_match.shots = reader.get_result()
+            self.parent.competition.add_match(
+                self.parent.user.shooter, reader.get_result()
+            )
         else:
             return
 

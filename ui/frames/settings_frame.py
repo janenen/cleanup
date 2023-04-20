@@ -1,8 +1,8 @@
-from configparser import ConfigParser
 import tkinter as tk
 from tkinter import ttk
 from idlelib.tooltip import Hovertip
 from data.shooter import Shooter
+from data.user import User, UserSettings
 
 
 class UserSettingsFrame(ttk.Frame):
@@ -50,24 +50,18 @@ class UserSettingsFrame(ttk.Frame):
 
     def parseInput(self):
         name = self.name.get()
+        if name == "":
+            return
         club = self.club.get()
         team = self.team.get()
-        new_shooter = Shooter(name=name, club=club, team=team)
-        self.parent.competition.add_match(new_shooter)
+        self.parent.user = User(
+            shooter=Shooter(name=name, club=club, team=team),
+            settings=UserSettings(),
+        )
         if self.save.get():
-            self.save_shooter(name, club, team)
+            self.save_user()
         return True
 
-    def save_shooter(self, name, club, team):
-        userconfig = ConfigParser()
-        userconfigpath = "./schuetzen.ini"
-        userconfig.read(userconfigpath)
-        section_name = self.name.get().replace(" ", "")
-        userconfig[section_name] = {
-            "Name": name,
-            "Verein": club,
-            "Mannschaft": team,
-            "niceness": 0,
-        }
-        with open(userconfigpath, "w") as configfile:
-            userconfig.write(configfile)
+    def save_user(self):
+        self.parent.userlist.add_user(self.parent.user)
+        self.parent.userlist.save()

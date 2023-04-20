@@ -13,16 +13,16 @@ class UserSettings:
 @dataclass_json
 @dataclass
 class User:
-    data: Shooter
+    shooter: Shooter
     settings: UserSettings
 
     @property
     def name(self):
-        return self.data.name
+        return self.shooter.name
 
     @property
     def club(self):
-        return self.data.club
+        return self.shooter.club
 
     @property
     def niceness(self):
@@ -33,3 +33,10 @@ class User:
 @dataclass
 class UserList:
     users: list[User] = field(default_factory=list)
+
+    def save(self):
+        with open("./users.json", "w") as json_file:
+            json_file.write(self.to_json())
+
+    def add_user(self, user: User):
+        self.users.append(user)

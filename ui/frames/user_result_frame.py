@@ -5,7 +5,6 @@ from data.series import Series
 import pdfgenerator
 from idlelib.tooltip import Hovertip
 from data.match import Match, RADIUS_DICT
-from configparser import ConfigParser
 
 
 class UserResultFrame(ttk.Frame):
@@ -182,18 +181,8 @@ class UserResultFrame(ttk.Frame):
         self.write_shots()
 
     def actionSpeichern(self):
-        userconfig = ConfigParser()
-        userconfigpath = "./schuetzen.ini"
-        userconfig.read(userconfigpath)
-        usersection = self.match.settings.shooter.name.replace(" ", "")
-        if userconfig.has_section(usersection):
-            if userconfig.has_option(usersection, "niceness"):
-                niceness = userconfig.getint(usersection, "niceness") + 1
-            else:
-                niceness = 1
-            userconfig[usersection]["niceness"] = str(niceness)
-            with open(userconfigpath, "w") as configfile:
-                userconfig.write(configfile)
+        self.parent.user.settings.niceness += 1
+        self.parent.userlist.save()
         self.actionCSV()
         self.actionPDF()
 
@@ -209,9 +198,10 @@ class UserResultFrame(ttk.Frame):
         filepath = self.match.settings.shooter.name.replace(" ", "_")
         filename = f"""{datetime.strftime(filedate, "%y%m%d")}_{self.match.settings.type_of_target}"""
         pdfgenerator.PDFgen.makeShooterPDF(
-            self.match,
-            filepath,
-            filename,
+            match=self.match,
+            filepath=filepath,
+            filename=filename,
+            extended=self.parent.user.settings.extended_analysis,
         )
         self.generate_button["state"] = "disabled"
 
@@ -345,41 +335,6 @@ class UserResultFrame(ttk.Frame):
                     width=self.canvsize / 6,
                 )
                 self.shotlabellist.append(label)
-        # if isinstance(self.actuallist, Match):
-        #    for n, S in enumerate(self.actuallist.series):
-        #        label = ttk.Label(
-        #            self,
-        #            text=(
-        #                "{:.1f}".format(S.summe)
-        #                if self.match.settings.decimal
-        #                else "{:d}".format(S.summe_ganz)
-        #            ),
-        #            anchor="center",
-        #        )
-        #        label.place(
-        #            x=(15 / 8 + n / 6) * self.canvsize,
-        #            y=(11 / 11) * self.canvsize,
-        #            height=self.canvsize / 11,
-        #            width=self.canvsize / 6,
-        #        )
-        #        self.shotlabellist.append(label)
-        # else:
-        #    label = ttk.Label(
-        #        self,
-        #        text=(
-        #            "{:.1f}".format(self.actuallist.summe)
-        #            if self.match.settings.decimal
-        #            else "{:d}".format(self.actuallist.summe_ganz)
-        #        ),
-        #        anchor="center",
-        #    )
-        #    label.place(
-        #        x=(15 / 8) * self.canvsize,
-        #        y=self.canvsize,
-        #        height=self.canvsize / 11,
-        #        width=self.canvsize / 6,
-        #    )
-        #    self.shotlabellist.append(label)
 
     def reset(self, back=False):
         self.generate_button["state"] = "normal"

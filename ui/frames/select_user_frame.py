@@ -39,14 +39,13 @@ class SelectUserFrame(ttk.Frame):
     def select(self, event):
         self.new_shooter = False
         selection = self.userlistbox.curselection()
-        print(selection)
         if len(selection) > 0:
             n = selection[0]
-            if n < len(self.userlist.users):
-                self.usersection: User = sorted(
-                    self.userlist.users, key=self.get_niceness, reverse=True
+            if n < len(self.parent.userlist.users):
+                self.parent.user = sorted(
+                    self.parent.userlist.users, key=self.get_niceness, reverse=True
                 )[n]
-                self.test_label.config(text=self.usersection.name)
+                self.test_label.config(text=self.parent.user.name)
             else:
                 self.new_shooter = True
                 self.test_label.config(text="Neuer Schütze")
@@ -58,14 +57,13 @@ class SelectUserFrame(ttk.Frame):
 
         if os.path.exists(self.userjsonpath):  # case start with existing user.json
             with open(self.userjsonpath, "r") as json_file:
-                self.userlist = UserList.from_json(json_file.read())
+                self.parent.userlist = UserList.from_json(json_file.read())
 
         elif os.path.exists(self.userconfigpath):  # legacy mode
             userconfig = configparser.ConfigParser()
             userconfig.read(self.userconfigpath)
-            self.userlist = UserList()
+            self.parent.userlist = UserList()
             for section in userconfig.sections():
-                print(section)
                 if not (section == "Neu" or section == "NeuerSchütze"):
                     shooter = Shooter(
                         name=userconfig.get(section, "Name"),
@@ -78,22 +76,21 @@ class SelectUserFrame(ttk.Frame):
                             section, "erweitert", fallback=False
                         ),
                     )
-                    self.userlist.users.append(User(data=shooter, settings=settings))
-            with open(self.userjsonpath, "w") as json_file:
-                json_file.write(self.userlist.to_json())
-            # os.remove(self.userconfigpath)
+                    self.parent.userlist.add_user(
+                        User(shooter=shooter, settings=settings)
+                    )
+            self.parent.userlist.save()
+            os.remove(self.userconfigpath)
         else:  # first start
-            self.userlist = UserList()
+            self.parent.userlist = UserList()
 
         self.userlistbox.delete("0", "end")
 
-        for user in sorted(self.userlist.users, key=self.get_niceness, reverse=True):
+        for user in sorted(
+            self.parent.userlist.users, key=self.get_niceness, reverse=True
+        ):
             self.userlistbox.insert("end", user.name)
 
-        # for section in sorted(
-        #    self.userconfig.sections(), key=self.get_niceness, reverse=True
-        # ):
-        #    self.userlistbox.insert("end", self.userconfig.get(section, "Name"))
         self.userlistbox.insert("end", "Neuer Schütze")
         self.userlistbox.bind("<<ListboxSelect>>", self.select)
         self.parent.back_button["state"] = "disabled"
@@ -107,12 +104,4 @@ class SelectUserFrame(ttk.Frame):
 
     def new_user(self):
         self.userlistbox.unbind("<<ListboxSelect>>")
-        if not self.new_shooter:
-            self.parent.competition.add_match(
-                Shooter(
-                    name=self.usersection.name,
-                    club=self.usersection.club,
-                    team=None,
-                )
-            )
         return self.new_shooter
