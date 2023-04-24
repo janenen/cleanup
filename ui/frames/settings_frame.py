@@ -45,6 +45,10 @@ class UserSettingsFrame(ttk.Frame):
         self.grid(column=0, row=0, padx=5, pady=5, sticky="nsew")
 
     def reset(self, back=False):
+        if self.parent.user:  # user selected to edit
+            self.name.set(self.parent.user.name)
+            self.club.set(self.parent.user.club)
+            self.team.set(self.parent.user.team)
         self.parent.back_button["state"] = "normal"
         self.parent.ok_button["state"] = "normal"
 
@@ -54,14 +58,19 @@ class UserSettingsFrame(ttk.Frame):
             return
         club = self.club.get()
         team = self.team.get()
-        self.parent.user = User(
-            shooter=Shooter(name=name, club=club, team=team),
-            settings=UserSettings(),
-        )
+        if self.parent.user:
+            self.parent.user.shooter.name = name
+            self.parent.user.shooter.club = club
+            self.parent.user.shooter.team = team
+        else:
+            self.parent.user = User(
+                shooter=Shooter(name=name, club=club, team=team),
+                settings=UserSettings(),
+            )
+            if self.save.get():
+                self.parent.userlist.add_user(self.parent.user)
+                print("add user to list")
         if self.save.get():
-            self.save_user()
+            self.parent.userlist.save()
+            print("save list")
         return True
-
-    def save_user(self):
-        self.parent.userlist.add_user(self.parent.user)
-        self.parent.userlist.save()

@@ -25,6 +25,10 @@ class User:
         return self.shooter.club
 
     @property
+    def team(self):
+        return self.shooter.team
+
+    @property
     def niceness(self):
         return self.settings.niceness
 

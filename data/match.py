@@ -176,12 +176,6 @@ class Match:
             retval = retval + str(ser) + "\r\n"
         return retval
 
-    def __getitem__(self, key):
-        return self.series[key]
-
-    def __setitem__(self, key, value):
-        self.series[key] = value
-
     def __iter__(self):
         return self.__generatorfunction()
 

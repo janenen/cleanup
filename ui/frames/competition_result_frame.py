@@ -4,8 +4,6 @@ from datetime import datetime
 import pdfgenerator
 from idlelib.tooltip import Hovertip
 
-from configparser import ConfigParser
-
 
 class CompetitionResultFrame(ttk.Frame):
     def __init__(self, container, parent):

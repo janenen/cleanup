@@ -181,8 +181,9 @@ class UserResultFrame(ttk.Frame):
         self.write_shots()
 
     def actionSpeichern(self):
-        self.parent.user.settings.niceness += 1
-        self.parent.userlist.save()
+        if self.parent.user in self.parent.userlist.users:
+            self.parent.user.settings.niceness += 1
+            self.parent.userlist.save()
         self.actionCSV()
         self.actionPDF()
 
