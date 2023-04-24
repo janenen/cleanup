@@ -84,52 +84,6 @@ class Match:
             Series(self.shots[n * 10 : n * 10 + 10]) for n in range(self.anzahl // 10)
         ]
 
-    # def __init__(self, settings):
-    #    self.settings = settings
-    #    self.series = []
-    #    self.anzahl = 0
-    #    self.summe = 0
-    #    self.summe_ganz = 0
-    #    self.ablageRL = 0
-    #    self.ablageHT = 0
-    #    self.best = Shot()
-    #    self.worst = Shot()
-    #    # self.zehntel = False
-    #    # self.bewerb = "Training"
-    #    # self.name = ""
-    #    # self.verein = ""
-    #
-    #    # self.datum = date.today().strftime("%d.%m.%Y")
-    #    self.ausreisser = []
-    #    self.verteilung = [0] * 11
-
-    # def update(self):
-    #    self.anzahl = 0
-    #    self.summe = 0
-    #    self.summe_ganz = 0
-    #    self.ablageRL = 0
-    #    self.ablageHT = 0
-    #    self.best = None
-    #    self.worst = None
-    #    bestShots = []
-    #    worstShots = []
-    #    self.verteilung = [0] * 11
-    #
-    #    for series in self.series:
-    #        series.update()
-    #        self.anzahl += series.anzahl
-    #        self.summe += series.summe
-    #        self.summe_ganz += series.summe_ganz
-    #        self.ablageRL += series.ablageRL / len(self.series)
-    #        self.ablageHT += series.ablageHT / len(self.series)
-    #        bestShots.append(series.best)
-    #        worstShots.append(series.worst)
-    #        self.verteilung = list(map(add, self.verteilung, series.verteilung))
-    #
-    #    if self.anzahl > 0:
-    #        self.best = max(bestShots)
-    #        self.worst = min(worstShots)
-
     def get_x_list(self):
         return [s.x for s in self]
 
@@ -141,26 +95,6 @@ class Match:
 
     def get_r_list(self):
         return [s.ringe for s in self]
-
-    # def getOutliers(self, l=0.5):
-    #    if self.anzahl > 4:
-    #        self.ausreisser = []
-    #        for series in self.series:
-    #            series.getOutliers(l)
-    #            self.ausreisser.extend(series.ausreisser)
-
-    # def addSeries(self, series:Series):
-    #    self.series.append(series)
-    #    #self.update()
-
-    # def fromShotlist(self, shotlist:list[Shot]):
-    #    self.series = []
-    #    if len(shotlist) > 0:
-    #        for i in range(0, int((len(shotlist) - 1) / 10) + 1):
-    #            self.addSeries(Series(self.settings.decimal))
-    #        for n, shot in enumerate(shotlist):
-    #            self.series[int(n / 10)].addShot(shot)
-    #    self.update()
 
     def countRing(self, wert):
         n = 0
