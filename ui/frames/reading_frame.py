@@ -23,7 +23,7 @@ class ReadingFrame(ttk.Frame):
         self.canvas.grid(column=1, row=0, sticky="nse")
 
         self.columnconfigure(0, weight=1)
-        self.grid(column=0, row=0, padx=5, pady=5, sticky="nsew")
+        self.grid(column=1, row=0, padx=5, pady=5, sticky="nsew")
 
     def actionStart(self):
         machine = self.parent.competition.source

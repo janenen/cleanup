@@ -1,31 +1,50 @@
+import sys
 import tkinter as tk
 from tkinter import ttk
 from data.competition import Competition
+from data.match import Match
 from data.user import User, UserList
-from ui.frames.select_user_frame import SelectUserFrame
-from ui.frames.reading_frame import ReadingFrame
-from ui.frames.settings_frame import UserSettingsFrame
-from ui.frames.machine_selection_frame import MaschineSelectionFrame
-from ui.frames.user_result_frame import UserResultFrame
-from ui.frames.competition_settings_frame import CompetitionSettingsFrame
-from ui.frames.competition_result_frame import CompetitionResultFrame
+from .select_user_frame import SelectUserFrame
+from .reading_frame import ReadingFrame
+from .settings_frame import UserSettingsFrame
+from .machine_selection_frame import MaschineSelectionFrame
+from .user_result_frame import UserResultFrame
+from .competition_settings_frame import CompetitionSettingsFrame
+from .competition_result_frame import CompetitionResultFrame
+from .competitions_frame import Competitions
+from .competition_control_frame import CompetitionControlFrame
 
 
 class ControlFrame(ttk.Frame):
+    competitions: list[Competition] = []
     competition: Competition
     userlist: UserList
     user: User = None
+    current_match: Match = None
 
     def actionOK(self):
         back = False
-        if self.nextframe == "competition":
+        if self.nextframe == "control":
+            self.competitions_frame.competition_listbox.unbind("<<ListboxSelect>>")
+            self.competitions_frame.competition_listbox.configure(state="disabled")
+            if self.frames["control"].next_step == "add competition":
+                self.nextframe = "competition"
+            elif self.frames["control"].next_step == "finish competition":
+                self.nextframe = "competition_result"
+            elif self.frames["control"].next_step == "add entry":
+                self.nextframe = "user"
+            elif self.frames["control"].next_step == "quick analysis":
+                self.nextframe = "machine"
+            elif self.frames["control"].next_step == "quit":
+                sys.exit(0)
+
+        elif self.nextframe == "competition":
             if self.frames["competition"].parseInput():
                 self.nextframe = "machine"
 
         elif self.nextframe == "machine":
             self.nextframe = "user"
 
-        # loop while no new entry is available
         elif self.nextframe == "user":
             if self.frames["user"].new_user():
                 self.nextframe = "user_settings"
@@ -40,53 +59,44 @@ class ControlFrame(ttk.Frame):
             self.nextframe = "match_result"
 
         elif self.nextframe == "match_result":
-            MsgBox = tk.messagebox.askquestion(
-                "Weiterer Teilnehmer?",
-                "Weiterer Teilnehmer hinzufügen?",
-                icon="error",
-            )
-            if MsgBox == "yes":
-                self.nextframe = "user"
-            else:
-                self.nextframe = "competition_result"
+            self.competitions_frame.competition_listbox.unbind("<<ListboxSelect>>")
+            self.nextframe = "control"
+
         elif self.nextframe == "competition_result":
+
             MsgBox = tk.messagebox.askquestion(
-                "Programm schließen",
-                "Programm schließen?\nAlles gespeichert?",
+                "Alles gespeichert?",
+                "Alles gespeichert?",
                 icon="error",
             )
             if MsgBox == "yes":
-                self.container.quit()
+                self.competitions_frame.competition_listbox.configure(state="normal")
+                self.nextframe = "control"
             else:
                 return
         self.change_frame(back)
 
     def actionBack(self):
-        if self.nextframe == "match_result":
-            MsgBox = tk.messagebox.askquestion(
-                "Alles gespeichert?",
-                "Alles gespeichert?",
-                icon="error",
-            )
-            if MsgBox == "no":
-                return
-        self.reset()
-        self.nextframe = "competition"
+        self.competitions_frame.competition_listbox.configure(state="normal")
+        self.nextframe = "control"
         self.change_frame(back=True)
 
     def __init__(self, container):
         super().__init__(container)
         self.container = container
-        self.nextframe = "competition"
+        self.nextframe = "control"
         #  buttons
         self.back_button = ttk.Button(self, text="Zurück", command=self.actionBack)
         self.back_button.grid(column=1, row=0, padx=5, pady=5)
         self.ok_button = ttk.Button(self, text="OK", command=self.actionOK)
         self.ok_button.grid(column=2, row=0, padx=5, pady=5)
-        self.grid(column=0, row=1, padx=5, pady=5, sticky="se")
+        self.grid(column=1, row=1, padx=5, pady=5, sticky="se")
         self.reset()
+        self.competitions_frame = Competitions(container, self)
+        # self.competitions.tkraise()
         # initialize frames
         self.frames = {
+            "control": CompetitionControlFrame(container, self),
             "competition": CompetitionSettingsFrame(container, self),
             "machine": MaschineSelectionFrame(container, self),
             "user": SelectUserFrame(container, self),
@@ -102,6 +112,6 @@ class ControlFrame(ttk.Frame):
         self.user = None
 
     def change_frame(self, back=False):
-        frame = self.frames[self.nextframe]
-        frame.tkraise()
-        frame.reset(back)
+        self.frame = self.frames[self.nextframe]
+        self.frame.tkraise()
+        self.frame.reset(back)

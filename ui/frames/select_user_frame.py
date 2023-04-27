@@ -36,7 +36,7 @@ class SelectUserFrame(ttk.Frame):
         self.columnconfigure(0, weight=1)
 
         # add padding to the frame and show it
-        self.grid(column=0, row=0, padx=5, pady=5, sticky="nsew")
+        self.grid(column=1, row=0, padx=5, pady=5, sticky="nsew")
 
     def select(self, event):
         self.edit_shooter = False

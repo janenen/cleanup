@@ -79,7 +79,7 @@ class CompetitionSettingsFrame(ttk.Frame):
         # add padding to the frame and show it
         self.columnconfigure(0, weight=1)
         self.columnconfigure(1, weight=1)
-        self.grid(column=0, row=0, padx=5, pady=5, sticky="nsew")
+        self.grid(column=1, row=0, padx=5, pady=5, sticky="nsew")
 
     def reset(self, back=False):
         self.name.set("Training")
@@ -116,5 +116,9 @@ class CompetitionSettingsFrame(ttk.Frame):
         except ValueError as error:
             showerror(title="Das ist keine Zahl", message=error)
             return False
-        self.parent.competition = Competition(competition_settings)
+        self.parent.competitions.append(Competition(competition_settings))
+        self.parent.competition = self.parent.competitions[-1]
+        self.parent.competitions_frame.competition_listbox.configure(state="normal")
+        self.parent.competitions_frame.update_competitions()
+        self.parent.competitions_frame.competition_listbox.configure(state="disabled")
         return True

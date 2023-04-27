@@ -9,9 +9,9 @@ class App(tk.Tk):
     def __init__(self):
         super().__init__()
         self.title("Auswertung")
-        self.geometry("600x300")
+        self.geometry("800x320")
         self.resizable(True, True)
-        self.columnconfigure(0, weight=1)
+        self.columnconfigure(1, weight=1)
         self.rowconfigure(0, weight=1)
 
 

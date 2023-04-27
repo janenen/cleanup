@@ -29,7 +29,7 @@ class MaschineSelectionFrame(ttk.Frame):
 
         # add padding to the frame and show it
         self.columnconfigure(0, weight=1)
-        self.grid(column=0, row=0, padx=5, pady=5, sticky="nsew")
+        self.grid(column=1, row=0, padx=5, pady=5, sticky="nsew")
 
     def reload(self):
         self.available_machines = find_machines()

@@ -20,7 +20,7 @@ class CompetitionResultFrame(ttk.Frame):
             self.generate_button,
             "Ergebnis speichern\nDas Ergebnis wird gespeichert und ein druckbarer Bericht geöffnet",
         )
-        self.grid(column=0, row=0, padx=5, pady=5, sticky="nsew")
+        self.grid(column=1, row=0, padx=5, pady=5, sticky="nsew")
 
     def actionSpeichern(self):
         self.actionPDF()
@@ -38,6 +38,7 @@ class CompetitionResultFrame(ttk.Frame):
 
     def reset(self, back=False):
         self.generate_button["state"] = "normal"
+        self.parent.ok_button["state"] = "normal"
         for label in self.label_list:
             label.destroy()
         for n, entry in enumerate(self.parent.competition.entries):

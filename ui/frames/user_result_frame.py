@@ -125,7 +125,7 @@ class UserResultFrame(ttk.Frame):
             self.generate_button,
             "Ergebnis speichern\nDas Ergebnis wird gespeichert und ein druckbarer Bericht geöffnet",
         )
-        self.grid(column=0, row=0, padx=5, pady=5, sticky="nsew")
+        self.grid(column=1, row=0, padx=5, pady=5, sticky="nsew")
 
     """def scroll_start(self, event):
         self.canvas.scan_mark(event.x, event.y)
@@ -341,6 +341,8 @@ class UserResultFrame(ttk.Frame):
         self.generate_button["state"] = "normal"
         self.match: Match = self.parent.competition.current_match
         self.actuallist = Series(self.match.shots)
+        self.parent.competitions_frame.competition_listbox.configure(state="normal")
+        self.parent.competitions_frame.update_entries()
         self.write_shots()
 
         # self.l_slider.set(1)
