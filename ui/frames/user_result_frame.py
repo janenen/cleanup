@@ -339,7 +339,7 @@ class UserResultFrame(ttk.Frame):
 
     def reset(self, back=False):
         self.generate_button["state"] = "normal"
-        self.match: Match = self.parent.competition.current_match
+        self.match: Match = self.parent.current_match
         self.actuallist = Series(self.match.shots)
         self.parent.competitions_frame.competition_listbox.configure(state="normal")
         self.parent.competitions_frame.update_entries()

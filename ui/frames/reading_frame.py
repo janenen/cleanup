@@ -26,7 +26,7 @@ class ReadingFrame(ttk.Frame):
         self.grid(column=1, row=0, padx=5, pady=5, sticky="nsew")
 
     def actionStart(self):
-        machine = self.parent.competition.source
+        machine = self.parent.source
         self.statusbox.insert("end", "Port wird geöffnet...")
         self.container.update()
         self.statusbox.insert("end", "Einstellungen werden übergeben...")
@@ -57,7 +57,7 @@ class ReadingFrame(ttk.Frame):
                     self.container.update()
             self.statusbox.insert("end", "Einlesen abgeschlossen")
             self.container.update()
-            self.parent.competition.add_match(
+            self.parent.current_match = self.parent.competition.add_match(
                 self.parent.user.shooter, reader.get_result()
             )
         else:

@@ -9,25 +9,25 @@ class CompetitionControlFrame(ttk.Frame):
         self.parent = parent
         # field options
         options = {"padx": 5, "pady": 0}
-        self.columnconfigure(0,weight=1)
+        self.columnconfigure(0, weight=1)
         # Wettkampfsteuerung
         self.general_competition_labelframe = ttk.LabelFrame(
             self, text="Wettkampfsteuerung"
         )
-        self.general_competition_labelframe.columnconfigure(1,weight=1)
+        self.general_competition_labelframe.columnconfigure(1, weight=1)
         self.add_competition_button = ttk.Button(
             self.general_competition_labelframe,
             text="Wettbewerb hinzufügen",
             command=self.add_competition,
         )
-        self.add_competition_button.grid(row=0, column=1,sticky="e")
+        self.add_competition_button.grid(row=0, column=1, sticky="e")
         Hovertip(self.add_competition_button, "Fügt einen neuen Wettbewerb hinzu")
         self.load_competition_button = ttk.Button(
             self.general_competition_labelframe,
             text="Wettbewerb laden",
             command=self.load_competition,
         )
-        self.load_competition_button.grid(row=1, column=1,sticky="e")
+        self.load_competition_button.grid(row=1, column=1, sticky="e")
         self.load_competition_button["state"] = "disabled"  # enable when implemented
         Hovertip(
             self.load_competition_button,
@@ -39,13 +39,27 @@ class CompetitionControlFrame(ttk.Frame):
         self.current_competition_labelframe = ttk.LabelFrame(
             self, text="Aktueller Wettkampf"
         )
-        self.current_competition_labelframe.columnconfigure(1,weight=1)
+        self.current_competition_labelframe.columnconfigure(2, weight=1)
+        ttk.Label(self.current_competition_labelframe, text="Name:").grid(
+            row=0, column=0, sticky="e"
+        )
+        ttk.Label(self.current_competition_labelframe, text="Beiträge:").grid(
+            row=1, column=0, sticky="e"
+        )
+        self.competition_name_label = ttk.Label(
+            self.current_competition_labelframe, text="-"
+        )
+        self.competition_name_label.grid(row=0, column=1, sticky="w")
+        self.competition_count_label = ttk.Label(
+            self.current_competition_labelframe, text="0"
+        )
+        self.competition_count_label.grid(row=1, column=1, sticky="w")
         self.add_entry_button = ttk.Button(
             self.current_competition_labelframe,
             text="Beitrag hinzufügen",
             command=self.add_entry,
         )
-        self.add_entry_button.grid(row=0, column=1,sticky="e")
+        self.add_entry_button.grid(row=0, column=2, sticky="e")
         Hovertip(
             self.add_entry_button,
             "Dem aktuellen Wettbewerb einen weitern Beitrag hinzufügen",
@@ -55,7 +69,7 @@ class CompetitionControlFrame(ttk.Frame):
             text="Teilnehmer anzeigen",
             command=self.show_entries,
         )
-        self.show_entries_button.grid(row=1, column=1,sticky="e")
+        self.show_entries_button.grid(row=1, column=2, sticky="e")
         self.show_entries_button["state"] = "disabled"  # enable when implemented
         Hovertip(self.show_entries_button, "Zeigt die vorhandenen Ergebnisse an")
         self.save_competition_button = ttk.Button(
@@ -64,27 +78,27 @@ class CompetitionControlFrame(ttk.Frame):
             command=self.save_competition,
         )
         self.save_competition_button["state"] = "disabled"  # enable when implemented
-        self.save_competition_button.grid(row=2, column=1,sticky="e")
+        self.save_competition_button.grid(row=2, column=2, sticky="e")
         Hovertip(self.save_competition_button, "Den aktuellen Wettkampf speichern")
         self.finish_competition_button = ttk.Button(
             self.current_competition_labelframe,
             text="Wettbewerb beenden",
             command=self.finish_competition,
         )
-        self.finish_competition_button.grid(row=3, column=1,sticky="e")
+        self.finish_competition_button.grid(row=3, column=2, sticky="e")
         self.finish_competition_button["state"] = "disabled"  # enable when implemented
         Hovertip(self.finish_competition_button, "Beendet den aktuellen Wettbewerb")
         self.current_competition_labelframe.grid(row=1, column=0, sticky="ew")
 
         # Allgemeines
         self.general_labelframe = ttk.LabelFrame(self, text="Allgemeines")
-        self.general_labelframe.columnconfigure(1,weight=1)
+        self.general_labelframe.columnconfigure(1, weight=1)
         self.quick_analysis_button = ttk.Button(
             self.general_labelframe,
             text="Schnellauswertung",
             command=self.quick_analysis,
         )
-        self.quick_analysis_button.grid(row=0, column=1,sticky="e")
+        self.quick_analysis_button.grid(row=0, column=1, sticky="e")
         self.quick_analysis_button.configure(command=self.quick_analysis)
         Hovertip(
             self.quick_analysis_button,
@@ -93,7 +107,7 @@ class CompetitionControlFrame(ttk.Frame):
         self.quit_button = ttk.Button(
             self.general_labelframe, text="Programm beenden", command=self.quit
         )
-        self.quit_button.grid(row=1, column=1,sticky="e")
+        self.quit_button.grid(row=1, column=1, sticky="e")
         Hovertip(
             self.quit_button,
             "Programm beenden",
@@ -142,11 +156,21 @@ class CompetitionControlFrame(ttk.Frame):
         self.parent.ok_button["state"] = "disabled"
         self.parent.back_button["state"] = "disabled"
         self.parent.competitions_frame.competition_listbox.configure(state="normal")
+        self.parent.competitions_frame.update_competitions()
         if self.parent.competitions:
-            self.parent.competitions_frame.update_competitions()
             if self.parent.competition.entries:
                 self.finish_competition_button["state"] = "normal"
             self.add_entry_button["state"] = "normal"
         else:
             self.finish_competition_button["state"] = "disabled"
             self.add_entry_button["state"] = "disabled"
+        if self.parent.competition:
+            self.competition_name_label.config(
+                text=self.parent.competition.settings.name
+            )
+            self.competition_count_label.config(
+                text=len(self.parent.competition.entries)
+            )
+        else:
+            self.competition_name_label.config(text="-")
+            self.competition_count_label.config(text="-")

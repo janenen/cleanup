@@ -4,6 +4,7 @@ from tkinter import ttk
 from data.competition import Competition
 from data.match import Match
 from data.user import User, UserList
+from machines.machine import Machine
 from .select_user_frame import SelectUserFrame
 from .reading_frame import ReadingFrame
 from .settings_frame import UserSettingsFrame
@@ -21,6 +22,7 @@ class ControlFrame(ttk.Frame):
     userlist: UserList
     user: User = None
     current_match: Match = None
+    source: Machine
 
     def actionOK(self):
         back = False
@@ -32,7 +34,7 @@ class ControlFrame(ttk.Frame):
             elif self.frames["control"].next_step == "finish competition":
                 self.nextframe = "competition_result"
             elif self.frames["control"].next_step == "add entry":
-                self.nextframe = "user"
+                self.nextframe = "machine"
             elif self.frames["control"].next_step == "quick analysis":
                 self.nextframe = "machine"
             elif self.frames["control"].next_step == "quit":
@@ -72,6 +74,7 @@ class ControlFrame(ttk.Frame):
             if MsgBox == "yes":
                 self.competitions_frame.competition_listbox.configure(state="normal")
                 self.nextframe = "control"
+                self.frame.remove_current_competition()
             else:
                 return
         self.change_frame(back)

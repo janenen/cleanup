@@ -1,3 +1,4 @@
+import os
 from tkinter import ttk
 from datetime import datetime
 
@@ -36,6 +37,10 @@ class CompetitionResultFrame(ttk.Frame):
         )
         self.generate_button["state"] = "disabled"
 
+    def remove_current_competition(self):
+        self.parent.competitions.remove(self.parent.competition)
+        self.parent.competition = None
+
     def reset(self, back=False):
         self.generate_button["state"] = "normal"
         self.parent.ok_button["state"] = "normal"
@@ -52,3 +57,4 @@ class CompetitionResultFrame(ttk.Frame):
             result_label.grid(row=n, column=2)
             self.label_list.append(result_label)
         self.generate_button.grid(row=n + 1, column=0, columnspan=3, sticky="se")
+        print(self.parent.competition.to_json())
