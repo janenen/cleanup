@@ -44,8 +44,8 @@ class MaschineSelectionFrame(ttk.Frame):
         item = self.portlistbox.curselection()
         if not item:
             return
-        self.parent.competition.source = self.available_machines[item[0]]
-        self.parent.competition.source.settings = MachineSettings(
+        self.parent.source = self.available_machines[item[0]]
+        self.parent.source.settings = MachineSettings(
             count=self.parent.competition.settings.count,
             shots_per_target=self.parent.competition.settings.shots_per_target,
             type_of_target=self.parent.competition.settings.type_of_target,

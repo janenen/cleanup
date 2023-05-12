@@ -21,8 +21,7 @@ class Competitions(ttk.Frame):
             self.parent.competition = self.parent.competitions[n]
             print(self.parent.competition.settings.name)
         elif self.showing == "entries":
-            self.parent.competition._current_match = self.parent.competition.entries[n]
-            # print(self.parent.current_match.settings.shooter.name)
+            self.parent.current_match = self.parent.competition.entries[n]
         self.parent.frame.reset()
 
     def update_competitions(self):

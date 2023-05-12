@@ -93,30 +93,40 @@ class CompetitionSettingsFrame(ttk.Frame):
         self.parent.ok_button["state"] = "normal"
 
     def parseInput(self):
-        competition_settings = CompetitionSettings()
-        competition_settings.name = self.name.get()
-        competition_settings.decimal = self.decimal.get()
-        competition_settings.type_of_target = self.type_of_target.get()
-        if competition_settings.type_of_target == "":
+        name = self.name.get()
+        decimal = self.decimal.get()
+        type_of_target = self.type_of_target.get()
+        if type_of_target == "":
             showerror(
                 title="Scheibentyp auswählen",
                 message="Kein gültiger Scheibentyp ausgewählt",
             )
             return False
-        competition_settings.date = self.date.get()
+        date = self.date.get()
 
         try:
-            competition_settings.count = int(self.count.get())
+            count = int(self.count.get())
         except ValueError as error:
             showerror(title="Das ist keine Zahl", message=error)
             return False
 
         try:
-            competition_settings.shots_per_target = int(self.shots_per_target.get())
+            shots_per_target = int(self.shots_per_target.get())
         except ValueError as error:
             showerror(title="Das ist keine Zahl", message=error)
             return False
-        self.parent.competitions.append(Competition(competition_settings))
+        self.parent.competitions.append(
+            Competition(
+                CompetitionSettings(
+                    name=name,
+                    date=date,
+                    count=count,
+                    shots_per_target=shots_per_target,
+                    type_of_target=type_of_target,
+                    decimal=decimal,
+                )
+            )
+        )
         self.parent.competition = self.parent.competitions[-1]
         self.parent.competitions_frame.competition_listbox.configure(state="normal")
         self.parent.competitions_frame.update_competitions()

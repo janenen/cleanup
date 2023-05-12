@@ -1,11 +1,14 @@
 from datetime import date
-
+from dataclasses import dataclass, field
+from dataclasses_json import dataclass_json
 from data.shot import Shot
 from .match import Match, MatchSettings
 from .shooter import Shooter
 from machines.machine import Machine
 
 
+@dataclass_json
+@dataclass
 class CompetitionSettings:
     name: str
     date: str
@@ -15,14 +18,11 @@ class CompetitionSettings:
     decimal: bool
 
 
+@dataclass_json
+@dataclass
 class Competition:
     settings: CompetitionSettings
-    source: Machine
-    entries: list[Match] = []
-    _current_match: Match
-
-    def __init__(self, settings):
-        self.settings = settings
+    entries: list[Match] = field(default_factory=list)
 
     def add_match(self, shooter: Shooter, shots: list[Shot]):
         new_match = Match(
@@ -33,15 +33,11 @@ class Competition:
                 date=date.today().strftime("%d.%m.%Y"),
                 shooter=shooter,
                 type_of_target=self.settings.type_of_target,
-            )
+            ),
+            shots,
         )
-        new_match.shots = shots
         self.entries.append(new_match)
-        self._current_match = self.entries[-1]
-
-    @property
-    def current_match(self):
-        return self._current_match
+        return new_match
 
     def get_sorted_results(self):
         return self.entries

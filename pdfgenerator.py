@@ -291,7 +291,7 @@ class PDFgen:
                 for j, series in enumerate(entry.series):
                     pdf.text((190 - 120) + j * 10, 30 + n * 5, f"{series.summe_ganz}")
                 pdf.text(190, 30 + n * 5, str(entry.result))
-        newpath = os.path.join(outdir, "output", filepath, competition.settings.name)
+        newpath = os.path.join(outdir, "output", "competitions", filepath)
         if not os.path.exists(newpath):
             os.makedirs(newpath)
         testfilename = f"{filename}.pdf"
@@ -300,6 +300,8 @@ class PDFgen:
             testfilename = f"{filename}_{n}.pdf"
             n += 1
         pdf.output(os.path.join(newpath, testfilename), "F")
+        with open(os.path.join(newpath, f"{filename}_{n}.json"), "w") as jsonfile:
+            jsonfile.write(competition.to_json())
 
         if not sys.platform == "linux":
             os.startfile(os.path.join(newpath, testfilename))
