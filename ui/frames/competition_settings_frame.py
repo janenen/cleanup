@@ -115,19 +115,19 @@ class CompetitionSettingsFrame(ttk.Frame):
         except ValueError as error:
             showerror(title="Das ist keine Zahl", message=error)
             return False
-        self.parent.competitions.append(
-            Competition(
-                CompetitionSettings(
-                    name=name,
-                    date=date,
-                    count=count,
-                    shots_per_target=shots_per_target,
-                    type_of_target=type_of_target,
-                    decimal=decimal,
-                )
+        competition = Competition(
+            CompetitionSettings(
+                name=name,
+                date=date,
+                count=count,
+                shots_per_target=shots_per_target,
+                type_of_target=type_of_target,
+                decimal=decimal,
             )
         )
-        self.parent.competition = self.parent.competitions[-1]
+        if self.parent.add_to_current_competition:
+            self.parent.competitions.append(competition)
+        self.parent.competition = competition
         self.parent.competitions_frame.competition_listbox.configure(state="normal")
         self.parent.competitions_frame.update_competitions()
         self.parent.competitions_frame.competition_listbox.configure(state="disabled")

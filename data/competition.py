@@ -24,8 +24,13 @@ class Competition:
     settings: CompetitionSettings
     entries: list[Match] = field(default_factory=list)
 
-    def add_match(self, shooter: Shooter, shots: list[Shot]):
-        new_match = Match(
+    def add_match(self, shooter: Shooter, shots: list[Shot]) -> Match:
+        new_match = self.create_match(shooter, shots)
+        self.entries.append(new_match)
+        return new_match
+
+    def create_match(self, shooter: Shooter, shots: list[Shot]) -> Match:
+        return Match(
             MatchSettings(
                 competition=self.settings.name,
                 decimal=self.settings.decimal,
@@ -36,8 +41,6 @@ class Competition:
             ),
             shots,
         )
-        self.entries.append(new_match)
-        return new_match
 
     def get_sorted_results(self):
         return self.entries

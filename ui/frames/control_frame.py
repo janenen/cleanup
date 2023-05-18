@@ -30,13 +30,16 @@ class ControlFrame(ttk.Frame):
             self.competitions_frame.competition_listbox.unbind("<<ListboxSelect>>")
             self.competitions_frame.competition_listbox.configure(state="disabled")
             if self.frames["control"].next_step == "add competition":
+                self.add_to_current_competition = True
                 self.nextframe = "competition"
             elif self.frames["control"].next_step == "finish competition":
                 self.nextframe = "competition_result"
             elif self.frames["control"].next_step == "add entry":
                 self.nextframe = "machine"
+                self.add_to_current_competition = True
             elif self.frames["control"].next_step == "quick analysis":
-                self.nextframe = "machine"
+                self.add_to_current_competition = False
+                self.nextframe = "competition"
             elif self.frames["control"].next_step == "quit":
                 sys.exit(0)
 
@@ -88,6 +91,7 @@ class ControlFrame(ttk.Frame):
         super().__init__(container)
         self.container = container
         self.nextframe = "control"
+        self.add_to_current_competition = True
         #  buttons
         self.back_button = ttk.Button(self, text="Zurück", command=self.actionBack)
         self.back_button.grid(column=1, row=0, padx=5, pady=5)
@@ -96,7 +100,6 @@ class ControlFrame(ttk.Frame):
         self.grid(column=1, row=1, padx=5, pady=5, sticky="se")
         self.reset()
         self.competitions_frame = Competitions(container, self)
-        # self.competitions.tkraise()
         # initialize frames
         self.frames = {
             "control": CompetitionControlFrame(container, self),

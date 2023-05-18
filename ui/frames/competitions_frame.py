@@ -14,12 +14,10 @@ class Competitions(ttk.Frame):
 
     def select(self, event):
         selection = self.competition_listbox.curselection()
-        print(selection)
         if len(selection) > 0:
             n = selection[0]
         if self.showing == "competitions":
             self.parent.competition = self.parent.competitions[n]
-            print(self.parent.competition.settings.name)
         elif self.showing == "entries":
             self.parent.current_match = self.parent.competition.entries[n]
         self.parent.frame.reset()

@@ -69,8 +69,6 @@ class UserSettingsFrame(ttk.Frame):
             )
             if self.save.get():
                 self.parent.userlist.add_user(self.parent.user)
-                print("add user to list")
         if self.save.get():
             self.parent.userlist.save()
-            print("save list")
         return True

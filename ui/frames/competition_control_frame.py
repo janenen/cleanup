@@ -157,20 +157,23 @@ class CompetitionControlFrame(ttk.Frame):
         self.parent.back_button["state"] = "disabled"
         self.parent.competitions_frame.competition_listbox.configure(state="normal")
         self.parent.competitions_frame.update_competitions()
+        self.finish_competition_button["state"] = "disabled"
+        self.add_entry_button["state"] = "disabled"
+        self.competition_name_label.config(text="-")
+        self.competition_count_label.config(text="-")
+
+        if not self.parent.add_to_current_competition:
+            self.parent.competition = None
+            self.parent.add_to_current_competition = True
+
         if self.parent.competitions:
-            if self.parent.competition.entries:
-                self.finish_competition_button["state"] = "normal"
-            self.add_entry_button["state"] = "normal"
-        else:
-            self.finish_competition_button["state"] = "disabled"
-            self.add_entry_button["state"] = "disabled"
-        if self.parent.competition:
-            self.competition_name_label.config(
-                text=self.parent.competition.settings.name
-            )
-            self.competition_count_label.config(
-                text=len(self.parent.competition.entries)
-            )
-        else:
-            self.competition_name_label.config(text="-")
-            self.competition_count_label.config(text="-")
+            if self.parent.competition:
+                self.add_entry_button["state"] = "normal"
+                self.competition_name_label.config(
+                    text=self.parent.competition.settings.name
+                )
+                self.competition_count_label.config(
+                    text=len(self.parent.competition.entries)
+                )
+                if self.parent.competition.entries:
+                    self.finish_competition_button["state"] = "normal"

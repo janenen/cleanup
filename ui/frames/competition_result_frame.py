@@ -57,4 +57,3 @@ class CompetitionResultFrame(ttk.Frame):
             result_label.grid(row=n, column=2)
             self.label_list.append(result_label)
         self.generate_button.grid(row=n + 1, column=0, columnspan=3, sticky="se")
-        print(self.parent.competition.to_json())
