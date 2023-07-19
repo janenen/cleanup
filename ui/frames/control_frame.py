@@ -70,7 +70,6 @@ class ControlFrame(ttk.Frame):
             self.nextframe = "control"
 
         elif self.nextframe == "competition_result":
-
             MsgBox = tk.messagebox.askquestion(
                 "Alles gespeichert?",
                 "Alles gespeichert?",
