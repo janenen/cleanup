@@ -300,8 +300,6 @@ class PDFgen:
             testfilename = f"{filename}_{n}.pdf"
             n += 1
         pdf.output(os.path.join(newpath, testfilename), "F")
-        with open(os.path.join(newpath, f"{filename}_{n}.json"), "w") as jsonfile:
-            jsonfile.write(competition.to_json())
 
         if not sys.platform == "linux":
             os.startfile(os.path.join(newpath, testfilename))

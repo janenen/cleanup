@@ -61,6 +61,9 @@ class ReadingFrame(ttk.Frame):
                 self.parent.current_match = self.parent.competition.add_match(
                     self.parent.user.shooter, reader.get_result()
                 )
+                if self.parent.user in self.parent.userlist.users:
+                    self.parent.user.settings.niceness += 1
+                    self.parent.userlist.save()
             else:
                 self.parent.current_match = self.parent.competition.create_match(
                     self.parent.user.shooter, reader.get_result()

@@ -40,6 +40,8 @@ class ControlFrame(ttk.Frame):
             elif self.frames["control"].next_step == "quick analysis":
                 self.add_to_current_competition = False
                 self.nextframe = "competition"
+            elif self.frames["control"].next_step == "show entries":
+                self.nextframe = "match_result"
             elif self.frames["control"].next_step == "quit":
                 sys.exit(0)
 

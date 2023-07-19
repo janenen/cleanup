@@ -73,7 +73,7 @@ class CompetitionControlFrame(ttk.Frame):
             command=self.show_entries,
         )
         self.show_entries_button.grid(row=1, column=2, sticky="e")
-        self.show_entries_button["state"] = "disabled"  # enable when implemented
+        self.show_entries_button["state"] = "disabled"
         Hovertip(self.show_entries_button, "Zeigt die vorhandenen Ergebnisse an")
         self.save_competition_button = ttk.Button(
             self.current_competition_labelframe,
@@ -147,7 +147,8 @@ class CompetitionControlFrame(ttk.Frame):
             self.parent.actionOK()
 
     def show_entries(self):
-        pass
+        self.next_step = "show entries"
+        self.parent.actionOK()
 
     def load_competition(self):
         input_path = filedialog.askopenfilename(
@@ -200,6 +201,7 @@ class CompetitionControlFrame(ttk.Frame):
         self.parent.competitions_frame.update_competitions()
         self.finish_competition_button["state"] = "disabled"
         self.save_competition_button["state"] = "disabled"
+        self.show_entries_button["state"] = "disabled"
         self.add_entry_button["state"] = "disabled"
         self.competition_name_label.config(text="-")
         self.competition_count_label.config(text="-")
@@ -220,3 +222,4 @@ class CompetitionControlFrame(ttk.Frame):
                 )
                 if self.parent.competition.entries:
                     self.finish_competition_button["state"] = "normal"
+                    self.show_entries_button["state"] = "normal"

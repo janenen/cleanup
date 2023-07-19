@@ -17,7 +17,7 @@ class UserResultFrame(ttk.Frame):
         options = {"padx": 5, "pady": 0}
         self.i = 0
         self.shotcircles = {}
-        self.canvsize = 200
+        self.canvsize = 220
         self.canvas = tk.Canvas(
             self, bg="white", height=self.canvsize, width=self.canvsize
         )
@@ -77,7 +77,7 @@ class UserResultFrame(ttk.Frame):
         self.devylabel.grid(row=3, column=1, sticky="w")
         self.resultlabelframe.place(
             x=self.canvsize,
-            y=self.canvsize * 0 / 8,
+            y=self.canvsize * 0 / 9,
             height=self.canvsize * 5 / 10,
             width=self.canvsize * 3 / 4,
         )
@@ -105,22 +105,37 @@ class UserResultFrame(ttk.Frame):
         self.teilerlabel.grid(column=1, row=3, sticky="w")
         self.infolabelframe.place(
             x=self.canvsize,
-            y=self.canvsize * 4 / 8,
+            y=self.canvsize * 4 / 9,
             height=self.canvsize * 5 / 10,
             width=self.canvsize * 3 / 4,
         )
         self.shotlabellist = []
 
+        self.inputlabelframe = ttk.LabelFrame(self, text="Speichern")
         # user input
         self.generate_button = ttk.Button(
-            self, text="Drucken / Speichern", command=self.actionSpeichern
+            self.inputlabelframe,
+            text="Drucken / Speichern",
+            command=self.actionSpeichern,
         )
-        self.generate_button.place(
+        self.generate_button.grid(column=0, row=0, sticky="we")
+        self.extended = tk.BooleanVar()
+        self.extended_box = tk.Checkbutton(self.inputlabelframe)
+        self.extended_box["text"] = "Erweiterte Analyse"
+        self.extended_box["variable"] = self.extended
+        self.extended_box.grid(column=0, row=1, sticky="we")
+        self.inputlabelframe.place(
             x=self.canvsize,
-            y=self.canvsize,
-            height=self.canvsize / 8,
+            y=self.canvsize * 8 / 9,
+            height=self.canvsize * 3 / 9,
             width=self.canvsize * 3 / 4,
         )
+        # self.generate_button.place(
+        #    x=self.canvsize,
+        #    y=self.canvsize,
+        #    height=self.canvsize / 8,
+        #    width=self.canvsize * 3 / 4,
+        # )
         Hovertip(
             self.generate_button,
             "Ergebnis speichern\nDas Ergebnis wird gespeichert und ein druckbarer Bericht geöffnet",
@@ -181,9 +196,6 @@ class UserResultFrame(ttk.Frame):
         self.write_shots()
 
     def actionSpeichern(self):
-        if self.parent.user in self.parent.userlist.users:
-            self.parent.user.settings.niceness += 1
-            self.parent.userlist.save()
         self.actionCSV()
         self.actionPDF()
 
@@ -202,7 +214,7 @@ class UserResultFrame(ttk.Frame):
             match=self.match,
             filepath=filepath,
             filename=filename,
-            extended=self.parent.user.settings.extended_analysis,
+            extended=self.extended.get(),
         )
         self.generate_button["state"] = "disabled"
 
@@ -338,8 +350,15 @@ class UserResultFrame(ttk.Frame):
                 self.shotlabellist.append(label)
 
     def reset(self, back=False):
+        self.parent.ok_button["state"] = "normal"
+        self.parent.back_button["state"] = "disabled"
         self.generate_button["state"] = "normal"
-        self.match: Match = self.parent.current_match
+        if self.parent.user:
+            self.extended.set(self.parent.user.settings.extended_analysis)
+        if self.parent.current_match:
+            self.match: Match = self.parent.current_match
+        else:
+            self.match: Match = self.parent.competition.entries[-1]
         self.actuallist = Series(self.match.shots)
         self.parent.competitions_frame.competition_listbox.configure(state="normal")
         self.parent.competitions_frame.update_entries()
