@@ -22,11 +22,11 @@ class User:
 
     @property
     def club(self):
-        return self.shooter.club
+        return self.shooter.club.name
 
     @property
     def team(self):
-        return self.shooter.team
+        return self.shooter.team.name
 
     @property
     def niceness(self):

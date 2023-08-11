@@ -1,9 +1,12 @@
+import configparser
+import os
 import sys
 import tkinter as tk
 from tkinter import ttk
 from data.competition import Competition
 from data.match import Match
-from data.user import User, UserList
+from data.shooter import Shooter
+from data.user import User, UserList, UserSettings
 from machines.machine import Machine
 from .select_user_frame import SelectUserFrame
 from .reading_frame import ReadingFrame
@@ -53,7 +56,9 @@ class ControlFrame(ttk.Frame):
             self.nextframe = "user"
 
         elif self.nextframe == "user":
-            if self.frames["user"].new_user():
+            if self.frames["user"].edit_user():
+                self.nextframe = "user_settings"
+            elif self.frames["user"].new_user():
                 self.nextframe = "user_settings"
             else:
                 self.nextframe = "reading"
@@ -101,6 +106,9 @@ class ControlFrame(ttk.Frame):
         self.grid(column=1, row=1, padx=5, pady=5, sticky="se")
         self.reset()
         self.competitions_frame = Competitions(container, self)
+        #read DB
+        self.load_users()
+
         # initialize frames
         self.frames = {
             "control": CompetitionControlFrame(container, self),
@@ -113,6 +121,38 @@ class ControlFrame(ttk.Frame):
             "competition_result": CompetitionResultFrame(container, self),
         }
         self.change_frame()
+
+    def load_users(self):
+        userconfigpath = "./schuetzen.ini"
+        userjsonpath = "./users.json"
+        if os.path.exists(userjsonpath):  # case start with existing user.json
+            with open(userjsonpath, "r") as json_file:
+                self.userlist = UserList.from_json(json_file.read())
+
+        elif os.path.exists(userconfigpath):  # legacy mode
+            userconfig = configparser.ConfigParser()
+            userconfig.read(userconfigpath)
+            self.userlist = UserList()
+            for section in userconfig.sections():
+                if not (section == "Neu" or section == "NeuerSchütze"):
+                    shooter = Shooter(
+                        name=userconfig.get(section, "Name"),
+                        club=userconfig.get(section, "Verein"),
+                        team=None,
+                    )
+                    settings = UserSettings(
+                        niceness=userconfig.getint(section, "niceness", fallback=0),
+                        extended_analysis=userconfig.getboolean(
+                            section, "erweitert", fallback=False
+                        ),
+                    )
+                    self.userlist.add_user(
+                        User(shooter=shooter, settings=settings)
+                    )
+            self.userlist.save()
+            os.remove(userconfigpath)
+        else:  # first start
+            self.userlist = UserList()
 
     def reset(self):
         self.competition = None

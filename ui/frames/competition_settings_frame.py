@@ -4,7 +4,7 @@ from tkinter.messagebox import showerror
 from datetime import date
 from idlelib.tooltip import Hovertip
 from data.match import RADIUS_DICT
-from data.competition import Competition, CompetitionSettings
+from data.competition import Competition, CompetitionSettings, SORTING_FUNCTION
 
 
 class CompetitionSettingsFrame(ttk.Frame):
@@ -27,6 +27,7 @@ class CompetitionSettingsFrame(ttk.Frame):
         ttk.Label(self, text="Zehntelwertung:").grid(
             column=0, row=5, sticky="e", **options
         )
+        ttk.Label(self, text="Modus:").grid(column=0, row=6, sticky="e", **options)
 
         self.name = tk.StringVar()
         self.name_entry = ttk.Entry(self, textvariable=self.name)
@@ -76,6 +77,14 @@ class CompetitionSettingsFrame(ttk.Frame):
         self.decimal_box.grid(column=1, row=5, sticky="w", **options)
         Hovertip(self.decimal_box, "Wertung in Zehntelringen")
 
+        self.mode = tk.StringVar()
+        self.mode_menu = tk.OptionMenu(self, self.mode, *list(SORTING_FUNCTION.keys()))
+        self.mode_menu.grid(column=1, row=6, sticky="w", **options)
+        Hovertip(
+            self.type_of_target_menu,
+            "Art der Wertung",
+        )
+
         # add padding to the frame and show it
         self.columnconfigure(0, weight=1)
         self.columnconfigure(1, weight=1)
@@ -88,6 +97,7 @@ class CompetitionSettingsFrame(ttk.Frame):
         self.shots_per_target.set("1")
         self.type_of_target.set("LG")
         self.decimal.set(False)
+        self.mode.set("Bestes Ergebnis")
 
         self.parent.back_button["state"] = "normal"
         self.parent.ok_button["state"] = "normal"
@@ -115,6 +125,13 @@ class CompetitionSettingsFrame(ttk.Frame):
         except ValueError as error:
             showerror(title="Das ist keine Zahl", message=error)
             return False
+        mode = self.mode.get()
+        if mode == "":
+            showerror(
+                title="Modus auswählen",
+                message="Kein gültiger Modus ausgewählt",
+            )
+            return False
         competition = Competition(
             CompetitionSettings(
                 name=name,
@@ -123,6 +140,7 @@ class CompetitionSettingsFrame(ttk.Frame):
                 shots_per_target=shots_per_target,
                 type_of_target=type_of_target,
                 decimal=decimal,
+                modus=mode,
             )
         )
         if self.parent.add_to_current_competition:

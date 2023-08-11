@@ -4,7 +4,6 @@ from dataclasses_json import dataclass_json
 from data.shot import Shot
 from .match import Match, MatchSettings
 from .shooter import Shooter
-from machines.machine import Machine
 
 
 @dataclass_json
@@ -16,6 +15,13 @@ class CompetitionSettings:
     shots_per_target: int
     type_of_target: int
     decimal: bool
+    modus: str
+
+
+SORTING_FUNCTION = {
+    "Bestes Ergebnis": {"key": lambda x: x.result, "reverse": True},
+    "Bester Teiler": {"key": lambda x: x.best.teiler, "reverse": False},
+}
 
 
 @dataclass_json
@@ -43,5 +49,8 @@ class Competition:
         )
 
     def get_sorted_results(self):
-        return self.entries
-        # add sort function later
+        return sorted(
+            self.entries,
+            key=SORTING_FUNCTION[self.settings.modus]["key"],
+            reverse=SORTING_FUNCTION[self.settings.modus]["reverse"],
+        )

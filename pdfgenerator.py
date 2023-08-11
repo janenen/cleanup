@@ -609,8 +609,8 @@ class PDFgen:
         pdf.text(100, 70, str(match.countRing(5)))
 
         pdf.text(35, 20 + 10, match.settings.shooter.name)
-        pdf.text(35, 30 + 5, match.settings.shooter.club)
-        pdf.text(35, 30 + 10, match.settings.shooter.team)
+        pdf.text(35, 30 + 5, match.settings.shooter.club.name)
+        pdf.text(35, 30 + 10, match.settings.shooter.team.name)
         # pdf.text(85, 20 + 10, match.settings.date)
         # pdf.text(85, 30 + 10, match.settings.competition)
 

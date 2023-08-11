@@ -1,6 +1,8 @@
 import tkinter as tk
 from tkinter import ttk
 from idlelib.tooltip import Hovertip
+from data.club import Club
+from data.team import Team
 from data.shooter import Shooter
 from data.user import User, UserSettings
 
@@ -49,6 +51,10 @@ class UserSettingsFrame(ttk.Frame):
             self.name.set(self.parent.user.name)
             self.club.set(self.parent.user.club)
             self.team.set(self.parent.user.team)
+        else:  
+            self.name.set("")
+            self.club.set("")
+            self.team.set("")
         self.parent.back_button["state"] = "normal"
         self.parent.ok_button["state"] = "normal"
 
@@ -60,11 +66,11 @@ class UserSettingsFrame(ttk.Frame):
         team = self.team.get()
         if self.parent.user:
             self.parent.user.shooter.name = name
-            self.parent.user.shooter.club = club
-            self.parent.user.shooter.team = team
+            self.parent.user.shooter.club = Club(club)
+            self.parent.user.shooter.team = Team(team)
         else:
             self.parent.user = User(
-                shooter=Shooter(name=name, club=club, team=team),
+                shooter=Shooter(name=name, club=Club(club), team=Team(team)),
                 settings=UserSettings(),
             )
             if self.save.get():

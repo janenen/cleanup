@@ -44,18 +44,14 @@ class Match:
 
     @property
     def result(self):
-        return (
-            sum([s.ringe for s in self.shots])
-            if self.settings.decimal
-            else sum([s.ringe_ganz for s in self.shots])
-        )
+        return self.summe if self.settings.decimal else self.summe_ganz
 
     @property
-    def best(self):
+    def best(self) -> Shot:
         return max(self.shots)
 
     @property
-    def worst(self):
+    def worst(self) -> Shot:
         return min(self.shots)
 
     @property

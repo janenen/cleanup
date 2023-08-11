@@ -1,3 +1,4 @@
+import json
 import os
 from tkinter import filedialog
 from tkinter import ttk
@@ -163,8 +164,8 @@ class CompetitionControlFrame(ttk.Frame):
                     self.parent.competition = competition
                     self.reset()
                     return
-                except:
-                    pass
+                except Exception as e:
+                    print(e)
         MsgBox = messagebox.askretrycancel(
             "Keine gültige Datei ausgewählt", "Es wurde keine gültige Datei ausgeählt"
         )
@@ -183,7 +184,7 @@ class CompetitionControlFrame(ttk.Frame):
         )
         if output_path:
             with open(output_path, "w") as file:
-                file.write(self.parent.competition.to_json())
+                file.write(json.dumps(json.loads(self.parent.competition.to_json()),indent=2))
             self.parent.competitions.remove(self.parent.competition)
             self.parent.competition = None
             self.reset()

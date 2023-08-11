@@ -46,7 +46,7 @@ class CompetitionResultFrame(ttk.Frame):
         self.parent.ok_button["state"] = "normal"
         for label in self.label_list:
             label.destroy()
-        for n, entry in enumerate(self.parent.competition.entries):
+        for n, entry in enumerate(self.parent.competition.get_sorted_results()):
             rank_label = ttk.Label(self, text=f"{n+1}")
             rank_label.grid(row=n, column=0)
             self.label_list.append(rank_label)
