@@ -30,7 +30,7 @@ class User:
             self.matches.append(match.id)
 
     def add_competition(self, competition: Competition):
-        if competition.id=="":
+        if competition.id == "":
             raise Exception()
         if not competition.id in self.competitions:
             self.competitions.append(competition.id)

@@ -14,6 +14,7 @@ from machines.machine import Machine
 from ui.frames.club_settings_frame import ClubSettingsFrame
 from ui.frames.output_frame import OutputFrame
 from ui.frames.select_club_frame import SelectClubFrame
+from ui.frames.show_inactive_competitons_frame import ShowInactiveCompetitions
 from .select_user_frame import SelectUserFrame
 from .select_team_frame import SelectTeamFrame
 from .team_settings_frame import TeamSettingsFrame
@@ -60,9 +61,7 @@ class ControlFrame(ttk.Frame):
         self.teams = TeamDB.load()
         self.matches = MatchDB.load()
         self.competitions = CompetitionDB.load()
-        for comp in self.competitions:
-            if comp[1].active:
-                self.active_competitions.append(comp[1])
+        self.active_competitions = self.competitions.get_active_competitions()
 
         # initialize frames
         self.frames = {
@@ -79,6 +78,7 @@ class ControlFrame(ttk.Frame):
             "select_club": SelectClubFrame(container, self),
             "club_settings": ClubSettingsFrame(container, self),
             "output": OutputFrame(container, self),
+            "inactive_competitons": ShowInactiveCompetitions(container, self),
         }
         self.change_frame()
 
@@ -101,6 +101,8 @@ class ControlFrame(ttk.Frame):
                 self.nextframe = "match_result"
             elif self.frames["control"].next_step == "quit":
                 sys.exit(0)
+            elif self.frames["control"].next_step == "show old competitions":
+                self.nextframe = "inactive_competitons"
 
         elif self.nextframe == "competition":
             if self.frames["competition"].parseInput():
@@ -165,17 +167,12 @@ class ControlFrame(ttk.Frame):
             self.nextframe = "match_result"
 
         elif self.nextframe == "competition_result":
-            MsgBox = tk.messagebox.askquestion(
-                "Alles gespeichert?",
-                "Alles gespeichert?",
-                icon="error",
-            )
-            if MsgBox == "yes":
-                self.competitions_frame.competition_listbox.configure(state="normal")
-                self.nextframe = "control"
-                self.frame.remove_current_competition()
-            else:
-                return
+            self.competitions_frame.competition_listbox.configure(state="normal")
+            self.nextframe = "control"
+            self.frame.remove_current_competition()
+
+        elif self.nextframe == "inactive_competitons":
+            self.nextframe = "control"
         self.change_frame()
 
     def actionBack(self):

@@ -29,7 +29,7 @@ class Competitions(DefaultFrame):
     def update_competitions(self):
         self.showing = "competitions"
         self.competition_listbox.delete("0", "end")
-        for comp in self.active_competitions:
+        for comp in self.competitions.get_active_competitions():
             self.competition_listbox.insert("end", comp.name)
         self.competition_listbox.bind("<<ListboxSelect>>", self.select)
 

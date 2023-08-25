@@ -69,6 +69,20 @@ class CompetitionDB:
             self.competitions[id] = competition
         return competition.id
 
+    def get_active_competitions(self) -> list[Competition]:
+        returnlist = []
+        for comp in self.competitions.items():
+            if comp[1].active:
+                returnlist.append(comp[1])
+        return returnlist
+
+    def get_inactive_competitions(self) -> list[Competition]:
+        returnlist = []
+        for comp in self.competitions.items():
+            if not comp[1].active:
+                returnlist.append(comp[1])
+        return returnlist
+
     def __getitem__(self, key):
         return self.competitions[key]
 

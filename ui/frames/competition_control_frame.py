@@ -28,17 +28,7 @@ class CompetitionControlFrame(DefaultFrame):
         )
         self.add_competition_button.grid(row=0, column=1, sticky="e")
         Hovertip(self.add_competition_button, "Fügt einen neuen Wettbewerb hinzu")
-        # self.load_competition_button = ttk.Button(
-        #    self.general_competition_labelframe,
-        #    text="Wettbewerb laden",
-        #    command=self.load_competition,
-        # )
-        # self.load_competition_button.grid(row=1, column=1, sticky="e")
-        # self.load_competition_button["state"] = "disabled"  # "normal"
-        # Hovertip(
-        #    self.load_competition_button,
-        #    "Lädt einen gespeicherten Wettbewerb",
-        # )
+
         self.general_competition_labelframe.grid(row=0, column=0, sticky="ew")
 
         # Aktueller Wettkampf
@@ -110,10 +100,20 @@ class CompetitionControlFrame(DefaultFrame):
             self.quick_analysis_button,
             "Schnellauswertung\n Das Ergebnis wird keinem Wettbewerb hinzugefügt",
         )
+        self.load_competition_button = ttk.Button(
+            self.general_labelframe,
+            text="Wettbewerb laden",
+            command=self.show_old_competitions,
+        )
+        self.load_competition_button.grid(row=1, column=1, sticky="e")
+        Hovertip(
+            self.load_competition_button,
+            "Lädt einen gespeicherten Wettbewerb",
+        )
         self.quit_button = ttk.Button(
             self.general_labelframe, text="Programm beenden", command=self.quit
         )
-        self.quit_button.grid(row=1, column=1, sticky="e")
+        self.quit_button.grid(row=2, column=1, sticky="e")
         Hovertip(
             self.quit_button,
             "Programm beenden",
@@ -122,6 +122,10 @@ class CompetitionControlFrame(DefaultFrame):
         self.general_labelframe.grid(row=3, column=0, sticky="ew")
 
         self.grid(column=1, row=0, padx=5, pady=5, sticky="nsew")
+
+    def show_old_competitions(self):
+        self.next_step = "show old competitions"
+        self.proceed()
 
     def add_competition(self):
         self.next_step = "add competition"

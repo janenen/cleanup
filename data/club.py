@@ -1,7 +1,6 @@
 from dataclasses import dataclass, field
 import json
 import os
-import sys
 from typing import Dict
 from dataclasses_json import dataclass_json
 import uuid
