@@ -1,16 +1,15 @@
+import datetime
 import tkinter as tk
 from tkinter import ttk
 import time
-from data.match import RADIUS_DICT
+from data.match import RADIUS_DICT, Match
 from machines.machine import MachineException, ReadingThread
+from .default_frame import DefaultFrame
 
 
-class ReadingFrame(ttk.Frame):
+class ReadingFrame(DefaultFrame):
     def __init__(self, container, parent):
-        super().__init__(container)
-        self.parent = parent
-        self.container = container
-
+        super().__init__(container, parent)
         # field options
         options = {"padx": 5, "pady": 0}
         self.statusbox = tk.Listbox(self, state="normal")
@@ -26,7 +25,7 @@ class ReadingFrame(ttk.Frame):
         self.grid(column=1, row=0, padx=5, pady=5, sticky="nsew")
 
     def actionStart(self):
-        machine = self.parent.source
+        machine = self.source
         self.statusbox.insert("end", "Port wird geöffnet...")
         self.container.update()
         self.statusbox.insert("end", "Einstellungen werden übergeben...")
@@ -37,7 +36,7 @@ class ReadingFrame(ttk.Frame):
         except MachineException as e:
             self.statusbox.insert("end", e.message)
             self.container.update()
-            self.parent.back_button["state"] = "normal"
+            self.activate_back_button()
             config_success = False
         if config_success:
             self.statusbox.insert("end", "Scheiben eingeben!")
@@ -57,24 +56,36 @@ class ReadingFrame(ttk.Frame):
                     self.container.update()
             self.statusbox.insert("end", "Einlesen abgeschlossen")
             self.container.update()
-            if self.parent.add_to_current_competition:
-                self.parent.current_match = self.parent.competition.add_match(
-                    self.parent.user.shooter, reader.get_result()
-                )
-                if self.parent.user in self.parent.userlist.users:
-                    self.parent.user.settings.niceness += 1
-                    self.parent.userlist.save()
-            else:
-                self.parent.current_match = self.parent.competition.create_match(
-                    self.parent.user.shooter, reader.get_result()
-                )
+
+            self.current_match = Match(
+                date=datetime.date.today().strftime("%d.%m.%Y"),
+                shooter=self.user.shooter,
+                type_of_target=self.type_of_target,
+                shots=reader.get_result(),
+                club=self.club.id if self.club else "",
+                team=self.team.id if self.team else "",
+            )
+            self.matches.add_match(self.current_match)
+            self.user.add_match(self.current_match)
+            
+            self.user.add_match(self.current_match)
+            self.user.niceness += 1
+
+            if self.add_to_current_competition:
+                self.user.add_competition(self.competition)
+                self.current_match.add_competition(self.competition)
+                self.competition.add_match(self.current_match)
+            self.user.add_competition(self.competition)
+            self.users.save()
+            self.matches.save()
+            self.competitions.save()
         else:
             return
 
-        self.parent.back_button["state"] = "normal"
-        self.parent.ok_button["state"] = "normal"
+        self.activate_back_button()
+        self.activate_ok_button()
         # self.parent.progress.stop()
-        self.parent.actionOK()
+        self.proceed()
 
     def draw_shot(self, shot):
         radiusCalibre = RADIUS_DICT[self.type_of_target][4]
@@ -83,7 +94,7 @@ class ReadingFrame(ttk.Frame):
             -(shot.y - radiusCalibre) * self.scalefactor + self.canvsize / 2,
             (shot.x + radiusCalibre) * self.scalefactor + self.canvsize / 2,
             -(shot.y + radiusCalibre) * self.scalefactor + self.canvsize / 2,
-            # fill="orange" if a in self.parent.match.ausreisser else "green",
+            # fill="orange" if a in self.match.ausreisser else "green",
             fill="green",
             tag="shot",
             activefill="cyan",
@@ -121,11 +132,10 @@ class ReadingFrame(ttk.Frame):
         self.canvas.delete("ring")
         self.canvas.delete("shot")
 
-    def reset(self, back=False):
+    def reset(self):
         self.clear_target()
-        self.parent.back_button["state"] = "normal"
-        self.parent.ok_button["state"] = "disabled"
-        # self.start_button["state"] = "normal"
+        self.activate_back_button()
+        self.deactivate_ok_button()
         self.statusbox.delete("0", "end")
         self.statusbox.insert("end", "Bereit zum Einlesen")
         self.actionStart()

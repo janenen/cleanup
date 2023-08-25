@@ -1,16 +1,24 @@
-import configparser
-import os
+# import configparser
+# import os
 import sys
 import tkinter as tk
 from tkinter import ttk
-from data.competition import Competition
-from data.match import Match
-from data.shooter import Shooter
-from data.user import User, UserList, UserSettings
+from data.club import Club, ClubDB
+from data.competition import Competition, CompetitionDB
+from data.match import Match, MatchDB
+
+# from data.shooter import Shooter
+from data.user import User, UserDB  # , UserList, UserSettings
+from data.team import Team, TeamDB
 from machines.machine import Machine
+from ui.frames.club_settings_frame import ClubSettingsFrame
+from ui.frames.output_frame import OutputFrame
+from ui.frames.select_club_frame import SelectClubFrame
 from .select_user_frame import SelectUserFrame
+from .select_team_frame import SelectTeamFrame
+from .team_settings_frame import TeamSettingsFrame
 from .reading_frame import ReadingFrame
-from .settings_frame import UserSettingsFrame
+from .user_settings_frame import UserSettingsFrame
 from .machine_selection_frame import MaschineSelectionFrame
 from .user_result_frame import UserResultFrame
 from .competition_settings_frame import CompetitionSettingsFrame
@@ -20,15 +28,61 @@ from .competition_control_frame import CompetitionControlFrame
 
 
 class ControlFrame(ttk.Frame):
-    competitions: list[Competition] = []
-    competition: Competition
-    userlist: UserList
+    active_competitions: list[Competition] = []
+    competitions: CompetitionDB
+    competition: Competition = None
+    users: UserDB
     user: User = None
+    clubs: ClubDB
+    club: Club = None
+    matches: MatchDB
     current_match: Match = None
     source: Machine
+    teams: TeamDB
+    team: Team = None
+
+    def __init__(self, container):
+        super().__init__(container)
+        self.container = container
+        self.nextframe = "control"
+        self.add_to_current_competition = True
+        #  buttons
+        self.back_button = ttk.Button(self, text="Zurück", command=self.actionBack)
+        self.back_button.grid(column=1, row=0, padx=5, pady=5)
+        self.ok_button = ttk.Button(self, text="OK", command=self.actionOK)
+        self.ok_button.grid(column=2, row=0, padx=5, pady=5)
+        self.grid(column=1, row=1, padx=5, pady=5, sticky="se")
+        # self.reset()
+        self.competitions_frame = Competitions(container, self)
+        # read DB
+        self.users = UserDB.load()
+        self.clubs = ClubDB.load()
+        self.teams = TeamDB.load()
+        self.matches = MatchDB.load()
+        self.competitions = CompetitionDB.load()
+        for comp in self.competitions:
+            if comp[1].active:
+                self.active_competitions.append(comp[1])
+
+        # initialize frames
+        self.frames = {
+            "control": CompetitionControlFrame(container, self),
+            "competition": CompetitionSettingsFrame(container, self),
+            "machine": MaschineSelectionFrame(container, self),
+            "user": SelectUserFrame(container, self),
+            "user_settings": UserSettingsFrame(container, self),
+            "reading": ReadingFrame(container, self),
+            "match_result": UserResultFrame(container, self),
+            "competition_result": CompetitionResultFrame(container, self),
+            "select_team": SelectTeamFrame(container, self),
+            "team_settings": TeamSettingsFrame(container, self),
+            "select_club": SelectClubFrame(container, self),
+            "club_settings": ClubSettingsFrame(container, self),
+            "output": OutputFrame(container, self),
+        }
+        self.change_frame()
 
     def actionOK(self):
-        back = False
         if self.nextframe == "control":
             self.competitions_frame.competition_listbox.unbind("<<ListboxSelect>>")
             self.competitions_frame.competition_listbox.configure(state="disabled")
@@ -60,19 +114,55 @@ class ControlFrame(ttk.Frame):
                 self.nextframe = "user_settings"
             elif self.frames["user"].new_user():
                 self.nextframe = "user_settings"
+            elif self.frames["user"].team_to_select():
+                self.nextframe = "select_team"
+            elif self.frames["user"].club_to_select():
+                self.nextframe = "select_club"
             else:
                 self.nextframe = "reading"
 
         elif self.nextframe == "user_settings":
             if self.frames["user_settings"].parseInput():
-                self.nextframe = "reading"
+                self.frames["user"].create_new_user = False
+                self.nextframe = "user"
+
+        elif self.nextframe == "select_team":
+            if self.frames["select_team"].edit_team():
+                self.nextframe = "team_settings"
+            elif self.frames["select_team"].new_team():
+                self.nextframe = "team_settings"
+            else:
+                self.nextframe = "user"
+
+        elif self.nextframe == "team_settings":
+            if self.frames["team_settings"].parseInput():
+                self.nextframe = "user"
+
+        elif self.nextframe == "select_club":
+            if self.frames["select_club"].edit_club():
+                self.nextframe = "club_settings"
+            elif self.frames["select_club"].new_club():
+                self.nextframe = "club_settings"
+            else:
+                self.nextframe = "user"
+
+        elif self.nextframe == "club_settings":
+            if self.frames["club_settings"].parseInput():
+                self.nextframe = "user"
 
         elif self.nextframe == "reading":
             self.nextframe = "match_result"
 
         elif self.nextframe == "match_result":
-            self.competitions_frame.competition_listbox.unbind("<<ListboxSelect>>")
-            self.nextframe = "control"
+            if self.frames["match_result"].export:
+                self.frames["match_result"].export = False
+                self.nextframe = "output"
+            else:
+                self.competitions_frame.competition_listbox.unbind("<<ListboxSelect>>")
+                self.nextframe = "control"
+
+        elif self.nextframe == "output":
+            self.nextframe = "match_result"
 
         elif self.nextframe == "competition_result":
             MsgBox = tk.messagebox.askquestion(
@@ -86,79 +176,49 @@ class ControlFrame(ttk.Frame):
                 self.frame.remove_current_competition()
             else:
                 return
-        self.change_frame(back)
+        self.change_frame()
 
     def actionBack(self):
         self.competitions_frame.competition_listbox.configure(state="normal")
         self.nextframe = "control"
-        self.change_frame(back=True)
-
-    def __init__(self, container):
-        super().__init__(container)
-        self.container = container
-        self.nextframe = "control"
-        self.add_to_current_competition = True
-        #  buttons
-        self.back_button = ttk.Button(self, text="Zurück", command=self.actionBack)
-        self.back_button.grid(column=1, row=0, padx=5, pady=5)
-        self.ok_button = ttk.Button(self, text="OK", command=self.actionOK)
-        self.ok_button.grid(column=2, row=0, padx=5, pady=5)
-        self.grid(column=1, row=1, padx=5, pady=5, sticky="se")
-        self.reset()
-        self.competitions_frame = Competitions(container, self)
-        #read DB
-        self.load_users()
-
-        # initialize frames
-        self.frames = {
-            "control": CompetitionControlFrame(container, self),
-            "competition": CompetitionSettingsFrame(container, self),
-            "machine": MaschineSelectionFrame(container, self),
-            "user": SelectUserFrame(container, self),
-            "user_settings": UserSettingsFrame(container, self),
-            "reading": ReadingFrame(container, self),
-            "match_result": UserResultFrame(container, self),
-            "competition_result": CompetitionResultFrame(container, self),
-        }
         self.change_frame()
 
-    def load_users(self):
-        userconfigpath = "./schuetzen.ini"
-        userjsonpath = "./users.json"
-        if os.path.exists(userjsonpath):  # case start with existing user.json
-            with open(userjsonpath, "r") as json_file:
-                self.userlist = UserList.from_json(json_file.read())
-
-        elif os.path.exists(userconfigpath):  # legacy mode
-            userconfig = configparser.ConfigParser()
-            userconfig.read(userconfigpath)
-            self.userlist = UserList()
-            for section in userconfig.sections():
-                if not (section == "Neu" or section == "NeuerSchütze"):
-                    shooter = Shooter(
-                        name=userconfig.get(section, "Name"),
-                        club=userconfig.get(section, "Verein"),
-                        team=None,
-                    )
-                    settings = UserSettings(
-                        niceness=userconfig.getint(section, "niceness", fallback=0),
-                        extended_analysis=userconfig.getboolean(
-                            section, "erweitert", fallback=False
-                        ),
-                    )
-                    self.userlist.add_user(
-                        User(shooter=shooter, settings=settings)
-                    )
-            self.userlist.save()
-            os.remove(userconfigpath)
-        else:  # first start
-            self.userlist = UserList()
+    # def load_users(self):
+    #    userconfigpath = "./schuetzen.ini"
+    #    userjsonpath = "./users.json"
+    #    if os.path.exists(userjsonpath):  # case start with existing user.json
+    #        with open(userjsonpath, "r") as json_file:
+    #            self.userlist = UserList.from_json(json_file.read())
+    #
+    #    elif os.path.exists(userconfigpath):  # legacy mode
+    #        userconfig = configparser.ConfigParser()
+    #        userconfig.read(userconfigpath)
+    #        self.userlist = UserList()
+    #        for section in userconfig.sections():
+    #            if not (section == "Neu" or section == "NeuerSchütze"):
+    #                shooter = Shooter(
+    #                    name=userconfig.get(section, "Name"),
+    #                    club=userconfig.get(section, "Verein"),
+    #                    team=None,
+    #                )
+    #                settings = UserSettings(
+    #                    niceness=userconfig.getint(section, "niceness", fallback=0),
+    #                    extended_analysis=userconfig.getboolean(
+    #                        section, "erweitert", fallback=False
+    #                    ),
+    #                )
+    #                self.userlist.add_user(User(shooter=shooter, settings=settings))
+    #        self.userlist.save()
+    #        os.remove(userconfigpath)
+    #    else:  # first start
+    #        self.userlist = UserList()
 
     def reset(self):
-        self.competition = None
         self.user = None
+        self.team = None
+        self.club = None
 
-    def change_frame(self, back=False):
+    def change_frame(self):
         self.frame = self.frames[self.nextframe]
         self.frame.tkraise()
-        self.frame.reset(back)
+        self.frame.reset()

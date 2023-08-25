@@ -1,10 +1,18 @@
 from dataclasses import dataclass, field
+import json
+import os
 import statistics
+import uuid
 from dataclasses_json import dataclass_json
+
 from .shot import Shot
 from .series import Series
 from .shooter import Shooter
 import math
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from data.competition import Competition
 
 RADIUS_DICT = {
     "LP": (575, 250, 800, 2975, 225),
@@ -27,24 +35,18 @@ RADIUS_DICT = {
 
 @dataclass_json
 @dataclass
-class MatchSettings:
-    competition: str
-    decimal: bool
-    count: int
-    date: str
+class Match:
     shooter: Shooter
     type_of_target: str
-
-
-@dataclass_json
-@dataclass
-class Match:
-    settings: MatchSettings
+    date: str
     shots: list[Shot] = field(default_factory=list)
+    id: str = ""
+    club: str = ""
+    team: str = ""
+    competitions: list[str] = field(default_factory=list)
 
-    @property
-    def result(self):
-        return self.summe if self.settings.decimal else self.summe_ganz
+    def get_result(self, decimal: bool = False):
+        return self.summe if decimal else self.summe_ganz
 
     @property
     def best(self) -> Shot:
@@ -99,9 +101,13 @@ class Match:
                 n += 1
         return n
 
+    def add_competition(self, competition: "Competition"):
+        if not competition.id in self.competitions:
+            self.competitions.append(competition.id)
+
     def __str__(self):
         retval = ""
-        retval += f"{self.settings.shooter.name} {self.settings.type_of_target} {self.settings.date}\r\n"
+        retval += f"{self.shooter.name} {self.type_of_target} {self.date}\r\n"
         for ser in self.series:
             retval = retval + str(ser) + "\r\n"
         return retval
@@ -112,3 +118,40 @@ class Match:
     def __generatorfunction(self):
         for shot in self.shots:
             yield shot
+
+
+@dataclass_json
+@dataclass
+class MatchDB:
+    matches: dict[str, Match] = field(default_factory=dict)
+
+    def save(self, file="./db/matches.json"):
+        with open(file, "w") as json_file:
+            json_file.write(json.dumps(json.loads(self.to_json()), indent=2))
+
+    def load(file="./db/matches.json"):
+        if not os.path.exists(os.path.dirname(file)):
+            os.mkdir(os.path.dirname(file))
+        try:
+            with open(file, "r") as json_file:
+                db = MatchDB.from_json(json_file.read())
+        except Exception as e:
+            print(e)
+            print("Matches file not existing")
+            db = MatchDB()
+            db.save(file)
+        return db
+
+    def add_match(self, match: Match) -> str:
+        if not match.id:
+            id = str(uuid.uuid4())
+            match.id = id
+        if not match.id in self.matches.keys():
+            self.matches[match.id] = match
+        return match.id
+
+    def __getitem__(self, key):
+        return self.matches[key]
+
+    def __iter__(self):
+        return iter(self.matches.items())

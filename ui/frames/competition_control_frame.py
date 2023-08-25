@@ -1,16 +1,18 @@
-import json
-import os
-from tkinter import filedialog
+# import json
+# import os
+# from tkinter import filedialog
 from tkinter import ttk
 from tkinter import messagebox
 from idlelib.tooltip import Hovertip
-from data.competition import Competition
+
+# from data.competition import Competition
+from .default_frame import DefaultFrame
 
 
-class CompetitionControlFrame(ttk.Frame):
+class CompetitionControlFrame(DefaultFrame):
     def __init__(self, container, parent):
-        super().__init__(container)
-        self.parent = parent
+        super().__init__(container, parent)
+
         # field options
         options = {"padx": 5, "pady": 0}
         self.columnconfigure(0, weight=1)
@@ -26,17 +28,17 @@ class CompetitionControlFrame(ttk.Frame):
         )
         self.add_competition_button.grid(row=0, column=1, sticky="e")
         Hovertip(self.add_competition_button, "Fügt einen neuen Wettbewerb hinzu")
-        self.load_competition_button = ttk.Button(
-            self.general_competition_labelframe,
-            text="Wettbewerb laden",
-            command=self.load_competition,
-        )
-        self.load_competition_button.grid(row=1, column=1, sticky="e")
-        self.load_competition_button["state"] = "normal"
-        Hovertip(
-            self.load_competition_button,
-            "Lädt einen gespeicherten Wettbewerb",
-        )
+        # self.load_competition_button = ttk.Button(
+        #    self.general_competition_labelframe,
+        #    text="Wettbewerb laden",
+        #    command=self.load_competition,
+        # )
+        # self.load_competition_button.grid(row=1, column=1, sticky="e")
+        # self.load_competition_button["state"] = "disabled"  # "normal"
+        # Hovertip(
+        #    self.load_competition_button,
+        #    "Lädt einen gespeicherten Wettbewerb",
+        # )
         self.general_competition_labelframe.grid(row=0, column=0, sticky="ew")
 
         # Aktueller Wettkampf
@@ -76,14 +78,14 @@ class CompetitionControlFrame(ttk.Frame):
         self.show_entries_button.grid(row=1, column=2, sticky="e")
         self.show_entries_button["state"] = "disabled"
         Hovertip(self.show_entries_button, "Zeigt die vorhandenen Ergebnisse an")
-        self.save_competition_button = ttk.Button(
-            self.current_competition_labelframe,
-            text="Wettkampf speichern",
-            command=self.save_competition,
-        )
-        self.save_competition_button["state"] = "disabled"
-        self.save_competition_button.grid(row=2, column=2, sticky="e")
-        Hovertip(self.save_competition_button, "Den aktuellen Wettkampf speichern")
+        # self.save_competition_button = ttk.Button(
+        #    self.current_competition_labelframe,
+        #    text="Wettkampf speichern",
+        #    command=self.save_competition,
+        # )
+        # self.save_competition_button["state"] = "disabled"
+        # self.save_competition_button.grid(row=2, column=2, sticky="e")
+        # Hovertip(self.save_competition_button, "Den aktuellen Wettkampf speichern")
         self.finish_competition_button = ttk.Button(
             self.current_competition_labelframe,
             text="Wettbewerb beenden",
@@ -123,104 +125,101 @@ class CompetitionControlFrame(ttk.Frame):
 
     def add_competition(self):
         self.next_step = "add competition"
-        self.parent.actionOK()
+        self.proceed()
 
     def finish_competition(self):
         self.next_step = "finish competition"
-        self.parent.actionOK()
+        self.proceed()
 
     def add_entry(self):
         self.next_step = "add entry"
-        self.parent.actionOK()
+        self.proceed()
 
     def quick_analysis(self):
         self.next_step = "quick analysis"
-        self.parent.actionOK()
+        self.proceed()
 
     def quit(self):
         MsgBox = messagebox.askquestion(
             "Wirklich beenden?",
-            "Nicht gespeicherte Ergebnisse gehen verloren!",
+            "Sind Sie sicher?",
             icon="error",
         )
         if MsgBox == "yes":
             self.next_step = "quit"
-            self.parent.actionOK()
+            self.proceed()
 
     def show_entries(self):
         self.next_step = "show entries"
-        self.parent.actionOK()
+        self.proceed()
 
-    def load_competition(self):
-        input_path = filedialog.askopenfilename(
-            initialdir="./",
-            filetypes=[("JSON-Datei", ".json")],
-        )
-        if os.path.isfile(input_path):
-            with open(input_path, "r") as file:
-                try:
-                    competition = Competition.from_json(file.read())
-                    self.parent.competitions.append(competition)
-                    self.parent.competition = competition
-                    self.reset()
-                    return
-                except Exception as e:
-                    print(e)
-        MsgBox = messagebox.askretrycancel(
-            "Keine gültige Datei ausgewählt", "Es wurde keine gültige Datei ausgeählt"
-        )
-        if MsgBox:
-            self.load_competition()
+    # def load_competition(self):
+    #    input_path = filedialog.askopenfilename(
+    #        initialdir="./output",
+    #        filetypes=[("JSON-Datei", ".json")],
+    #    )
+    #    if os.path.isfile(input_path):
+    #        with open(input_path, "r") as file:
+    #            try:
+    #                competition = Competition.from_json(file.read())
+    #                self.active_competitions.append(competition)
+    #                self.competition = competition
+    #                # ToDo: check if Competition in DB
+    #                self.reset()
+    #                return
+    #            except Exception as e:
+    #                print(e)
+    #    MsgBox = messagebox.askretrycancel(
+    #        "Keine gültige Datei ausgewählt", "Es wurde keine gültige Datei ausgeählt"
+    #    )
+    #    if MsgBox:
+    #        self.load_competition()
 
-    def save_competition(self):
-        output_path = filedialog.asksaveasfilename(
-            confirmoverwrite=True,
-            defaultextension=".json",
-            filetypes=[("JSON-Datei", ".json")],
-            initialfile=f"{self.parent.competition.settings.name}".title().replace(
-                " ", ""
-            ),
-            initialdir="./",
-        )
-        if output_path:
-            with open(output_path, "w") as file:
-                file.write(json.dumps(json.loads(self.parent.competition.to_json()),indent=2))
-            self.parent.competitions.remove(self.parent.competition)
-            self.parent.competition = None
-            self.reset()
-        else:
-            MsgBox = messagebox.askretrycancel(
-                "Keine Datei ausgewählt", "Es wurde keine Datei ausgeählt"
-            )
-            if MsgBox:
-                self.save_competition()
+    # def save_competition(self):
+    #    # self.competitions.save()
+    #    output_path = filedialog.asksaveasfilename(
+    #        confirmoverwrite=True,
+    #        defaultextension=".json",
+    #        filetypes=[("JSON-Datei", ".json")],
+    #        initialfile=f"{self.competition.name}".title().replace(" ", ""),
+    #        initialdir="./output",
+    #    )
+    #    if output_path:
+    #        with open(output_path, "w") as file:
+    #            file.write(json.dumps(json.loads(self.competition.to_json()), indent=2))
+    #        self.current_competitions.remove(self.competition)
+    #        self.competition = None
+    #        self.reset()
+    #    else:
+    #        MsgBox = messagebox.askretrycancel(
+    #            "Keine Datei ausgewählt", "Es wurde keine Datei ausgeählt"
+    #        )
+    #        if MsgBox:
+    #            self.save_competition()
 
-    def reset(self, back=False):
-        self.parent.ok_button["state"] = "disabled"
-        self.parent.back_button["state"] = "disabled"
+    def reset(self):
+        self.deactivate_ok_button()
+        self.deactivate_back_button()
         self.parent.competitions_frame.competition_listbox.configure(state="normal")
         self.parent.competitions_frame.update_competitions()
+        self.parent.reset()
         self.finish_competition_button["state"] = "disabled"
-        self.save_competition_button["state"] = "disabled"
+        # self.save_competition_button["state"] = "disabled"
         self.show_entries_button["state"] = "disabled"
         self.add_entry_button["state"] = "disabled"
         self.competition_name_label.config(text="-")
         self.competition_count_label.config(text="-")
 
-        if not self.parent.add_to_current_competition:
-            self.parent.competition = None
-            self.parent.add_to_current_competition = True
+        if not self.add_to_current_competition:
+            self.competition = None
+            self.add_to_current_competition = True
 
-        if self.parent.competitions:
-            if self.parent.competition:
+        if self.competitions:
+            if self.competition:
                 self.add_entry_button["state"] = "normal"
-                self.save_competition_button["state"] = "normal"
-                self.competition_name_label.config(
-                    text=self.parent.competition.settings.name
-                )
-                self.competition_count_label.config(
-                    text=len(self.parent.competition.entries)
-                )
-                if self.parent.competition.entries:
+                # self.save_competition_button["state"] = "disabled"  # "normal"
+                self.competition_name_label.config(text=self.competition.name)
+                self.competition_count_label.config(text=len(self.competition.entries))
+                if self.competition.entries:
                     self.finish_competition_button["state"] = "normal"
                     self.show_entries_button["state"] = "normal"

@@ -1,46 +1,76 @@
 from dataclasses import dataclass, field
+import json
+import os
+import uuid
 from dataclasses_json import dataclass_json
+from data.competition import Competition
+from data.match import Match
 from .shooter import Shooter
-
-
-@dataclass_json
-@dataclass
-class UserSettings:
-    niceness: int = 0
-    extended_analysis: bool = False
 
 
 @dataclass_json
 @dataclass
 class User:
     shooter: Shooter
-    settings: UserSettings
+    niceness: int = 0
+    id: str = ""
+    matches: list[str] = field(default_factory=list)
+    competitions: list[str] = field(default_factory=list)
 
     @property
     def name(self):
         return self.shooter.name
 
     @property
-    def club(self):
-        return self.shooter.club.name
+    def birthday(self):
+        return self.shooter.birthday
 
-    @property
-    def team(self):
-        return self.shooter.team.name
+    def add_match(self, match: Match):
+        if not match.id in self.matches:
+            self.matches.append(match.id)
 
-    @property
-    def niceness(self):
-        return self.settings.niceness
+    def add_competition(self, competition: Competition):
+        if competition.id=="":
+            raise Exception()
+        if not competition.id in self.competitions:
+            self.competitions.append(competition.id)
 
 
 @dataclass_json
 @dataclass
-class UserList:
-    users: list[User] = field(default_factory=list)
+class UserDB:
+    users: dict[str, User] = field(default_factory=dict)
 
-    def save(self):
-        with open("./users.json", "w") as json_file:
-            json_file.write(self.to_json())
+    def save(self, file="./db/users.json"):
+        with open(file, "w") as json_file:
+            json_file.write(json.dumps(json.loads(self.to_json()), indent=2))
 
-    def add_user(self, user: User):
-        self.users.append(user)
+    def load(file="./db/users.json"):
+        if not os.path.exists(os.path.dirname(file)):
+            os.mkdir(os.path.dirname(file))
+        try:
+            with open(file, "r") as json_file:
+                db = UserDB.from_json(json_file.read())
+        except Exception as e:
+            print(e)
+            print("User file not existing")
+            db = UserDB()
+            db.save(file)
+        return db
+
+    def add_user(self, user: User) -> str:
+        if not user.id:
+            id = str(uuid.uuid4())
+            user.id = id
+        if not user.id in self.users.keys():
+            self.users[id] = user
+        return user.id
+
+    def _get_niceness(item: tuple[str, User]):
+        return item[1].niceness
+
+    def __getitem__(self, key):
+        return self.users[key]
+
+    def __iter__(self):
+        return iter(sorted(self.users.items(), key=UserDB._get_niceness, reverse=True))
