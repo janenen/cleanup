@@ -69,7 +69,7 @@ class SelectUserFrame(DefaultFrame):
         if len(selection) > 0:
             n = selection[0]
             if n < len(self.users.users):
-                self.user = sorted(self.users)[n][1]
+                self.user = self.userlist[n][1]
                 self.name_label.config(text=self.user.name)
                 self.club_label.config(text=self.club.name if self.club else "")
                 self.team_label.config(text=self.team.name if self.team else "")
@@ -91,8 +91,8 @@ class SelectUserFrame(DefaultFrame):
         self.team_label.config(text=self.team.name if self.team else "-")
         self.team_button["state"] = "normal" if self.user else "disabled"
         self.userlistbox.delete("0", "end")
-
-        for user in sorted(self.users):
+        self.userlist = [user for user in self.users]
+        for user in self.userlist:
             self.userlistbox.insert("end", user[1].name)
 
         self.userlistbox.bind("<<ListboxSelect>>", self.select)

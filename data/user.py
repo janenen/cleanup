@@ -2,6 +2,7 @@ from dataclasses import dataclass, field
 import json
 import os
 import uuid
+import configparser
 from dataclasses_json import dataclass_json
 from data.competition import Competition
 from data.match import Match
@@ -42,17 +43,33 @@ class UserDB:
     users: dict[str, User] = field(default_factory=dict)
 
     def save(self, file="./db/users.json"):
+        if not os.path.exists(os.path.dirname(file)):
+            os.mkdir(os.path.dirname(file))
         with open(file, "w") as json_file:
             json_file.write(json.dumps(json.loads(self.to_json()), indent=2))
 
     def load(file="./db/users.json"):
-        if not os.path.exists(os.path.dirname(file)):
-            os.mkdir(os.path.dirname(file))
-        try:
-            with open(file, "r") as json_file:
-                db = UserDB.from_json(json_file.read())
-        except Exception as e:
-            print(e)
+        if os.path.exists(file):
+            try:
+                with open(file, "r") as json_file:
+                    db = UserDB.from_json(json_file.read())
+            except Exception as e:
+                print(e)
+                print("Format not correct")
+        elif os.path.exists("./schuetzen.ini"):
+            print("old config found")
+            db = UserDB()
+            userconfig = configparser.ConfigParser()
+            userconfig.read("./schuetzen.ini")
+
+            for section in userconfig.sections():
+                if not (section == "Neu" or section == "NeuerSchütze"):
+                    name = userconfig.get(section, "Name")
+                    niceness = userconfig.getint(section, "niceness", fallback=0)
+                    db.add_user(User(shooter=Shooter(name), niceness=niceness))
+            db.save(file)
+            os.remove("./schuetzen.ini")
+        else:
             print("User file not existing")
             db = UserDB()
             db.save(file)
