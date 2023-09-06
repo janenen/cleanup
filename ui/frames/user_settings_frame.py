@@ -43,6 +43,7 @@ class UserSettingsFrame(DefaultFrame):
         if self.user:  # user selected to edit
             self.name.set(self.user.name)
             self.birthday.set(self.user.birthday)
+        self.save.set(False)
         self.activate_back_button()
         self.activate_ok_button()
 

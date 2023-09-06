@@ -32,8 +32,9 @@ class TeamSettingsFrame(DefaultFrame):
 
     def reset(self):
         self.name.set("")
-        if self.team:  # user selected to edit
+        if self.team:  # team selected to edit
             self.name.set(self.team.name)
+        self.save.set(False)
         self.activate_back_button()
         self.activate_ok_button()
 
@@ -41,8 +42,12 @@ class TeamSettingsFrame(DefaultFrame):
         name = self.name.get()
         if name == "":
             return
-        self.team = Team(name)
+        if self.team:
+            self.team.name = name
+        else:
+            self.team = Team(name)
+            if self.save.get():
+                self.teams.add_team(self.team)
         if self.save.get():
-            self.teams.add_team(self.team)
             self.teams.save()
         return True

@@ -49,7 +49,7 @@ class ShowInactiveCompetitions(DefaultFrame):
                 self.activate_competition_button["state"] = "normal"
                 self.delete_button["state"] = "normal"
             else:
-                pass
+                return
 
         self.activate_back_button()
         self.activate_ok_button()

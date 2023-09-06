@@ -46,11 +46,12 @@ class SelectTeamFrame(DefaultFrame):
                 self.team = sorted(self.teams)[n][1]
                 self.test_label.config(text=self.team.name)
                 self.edit_button["state"] = "normal"
+            elif n == len(self.teams.teams):
+                self.team = None
+                self.test_label.config(text="Keine Mannschaft ausgewählt")
+                self.edit_button["state"] = "disabled"
             else:
-                pass
-                # self.edit_shooter = True
-                # self.test_label.config(text="Neuer Schütze")
-                # self.edit_button["state"] = "disabled"
+                return
         self.activate_back_button()
         self.activate_ok_button()
 
@@ -62,6 +63,7 @@ class SelectTeamFrame(DefaultFrame):
 
         for team in sorted(self.teams):
             self.teamlistbox.insert("end", team[1].name)
+        self.teamlistbox.insert("end", "Keine")
 
         # self.teamlistbox.insert("end", "Neuer Schütze")
         self.teamlistbox.bind("<<ListboxSelect>>", self.select)

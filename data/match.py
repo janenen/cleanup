@@ -46,7 +46,7 @@ class Match:
     competitions: list[str] = field(default_factory=list)
 
     def get_result(self, decimal: bool = False):
-        return self.summe if decimal else self.summe_ganz
+        return round(self.summe if decimal else self.summe_ganz, 1)
 
     @property
     def best(self) -> Shot:

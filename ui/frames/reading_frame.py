@@ -66,15 +66,11 @@ class ReadingFrame(DefaultFrame):
             )
             self.matches.add_match(self.current_match)
             self.user.add_match(self.current_match)
-
-            self.user.add_match(self.current_match)
-
             if self.add_to_current_competition:
                 self.user.niceness += 1
                 self.user.add_competition(self.competition)
                 self.current_match.add_competition(self.competition)
                 self.competition.add_match(self.current_match)
-            self.user.add_competition(self.competition)
             self.users.save()
             self.matches.save()
             self.competitions.save()

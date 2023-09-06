@@ -46,11 +46,12 @@ class SelectClubFrame(DefaultFrame):
                 self.club = sorted(self.clubs)[n][1]
                 self.test_label.config(text=self.club.name)
                 self.edit_button["state"] = "normal"
+            elif n == len(self.clubs.clubs):
+                self.club = None
+                self.test_label.config(text="Kein Verein ausgewählt")
+                self.edit_button["state"] = "disabled"
             else:
-                pass
-                # self.edit_shooter = True
-                # self.test_label.config(text="Neuer Schütze")
-                # self.edit_button["state"] = "disabled"
+                return
         self.activate_back_button()
         self.activate_ok_button()
 
@@ -62,6 +63,7 @@ class SelectClubFrame(DefaultFrame):
 
         for club in sorted(self.clubs):
             self.clublistbox.insert("end", club[1].name)
+        self.clublistbox.insert("end", "Keiner")
 
         # self.clublistbox.insert("end", "Neuer Schütze")
         self.clublistbox.bind("<<ListboxSelect>>", self.select)
