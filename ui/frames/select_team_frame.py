@@ -63,7 +63,7 @@ class SelectTeamFrame(DefaultFrame):
 
         for team in sorted(self.teams):
             self.teamlistbox.insert("end", team[1].name)
-        self.clublistbox.insert("end", "Keine")
+        self.teamlistbox.insert("end", "Keine")
 
         # self.teamlistbox.insert("end", "Neuer Schütze")
         self.teamlistbox.bind("<<ListboxSelect>>", self.select)

@@ -33,6 +33,7 @@ class ClubSettingsFrame(DefaultFrame):
         self.name.set("")
         if self.club:  # club selected to edit
             self.name.set(self.club.name)
+        self.save.set(False)
         self.activate_back_button()
         self.activate_ok_button()
 
@@ -40,8 +41,12 @@ class ClubSettingsFrame(DefaultFrame):
         name = self.name.get()
         if name == "":
             return
-        self.club = Club(name)
+        if self.club:
+            self.club.name = name
+        else:
+            self.club = Club(name)
+            if self.save.get():
+                self.clubs.add_club(self.club)
         if self.save.get():
-            self.clubs.add_club(self.club)
             self.clubs.save()
         return True
