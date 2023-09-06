@@ -41,6 +41,7 @@ class ControlFrame(ttk.Frame):
     source: Machine
     teams: TeamDB
     team: Team = None
+    visualisation=None
 
     def __init__(self, container):
         super().__init__(container)
@@ -179,36 +180,6 @@ class ControlFrame(ttk.Frame):
         self.competitions_frame.competition_listbox.configure(state="normal")
         self.nextframe = "control"
         self.change_frame()
-
-    # def load_users(self):
-    #    userconfigpath = "./schuetzen.ini"
-    #    userjsonpath = "./users.json"
-    #    if os.path.exists(userjsonpath):  # case start with existing user.json
-    #        with open(userjsonpath, "r") as json_file:
-    #            self.userlist = UserList.from_json(json_file.read())
-    #
-    #    elif os.path.exists(userconfigpath):  # legacy mode
-    #        userconfig = configparser.ConfigParser()
-    #        userconfig.read(userconfigpath)
-    #        self.userlist = UserList()
-    #        for section in userconfig.sections():
-    #            if not (section == "Neu" or section == "NeuerSchütze"):
-    #                shooter = Shooter(
-    #                    name=userconfig.get(section, "Name"),
-    #                    club=userconfig.get(section, "Verein"),
-    #                    team=None,
-    #                )
-    #                settings = UserSettings(
-    #                    niceness=userconfig.getint(section, "niceness", fallback=0),
-    #                    extended_analysis=userconfig.getboolean(
-    #                        section, "erweitert", fallback=False
-    #                    ),
-    #                )
-    #                self.userlist.add_user(User(shooter=shooter, settings=settings))
-    #        self.userlist.save()
-    #        os.remove(userconfigpath)
-    #    else:  # first start
-    #        self.userlist = UserList()
 
     def reset(self):
         self.user = None
