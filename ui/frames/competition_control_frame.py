@@ -69,14 +69,7 @@ class CompetitionControlFrame(DefaultFrame):
         self.show_entries_button.grid(row=1, column=2, sticky="e")
         self.show_entries_button["state"] = "disabled"
         Hovertip(self.show_entries_button, "Zeigt die vorhandenen Ergebnisse an")
-        # self.save_competition_button = ttk.Button(
-        #    self.current_competition_labelframe,
-        #    text="Wettkampf speichern",
-        #    command=self.save_competition,
-        # )
-        # self.save_competition_button["state"] = "disabled"
-        # self.save_competition_button.grid(row=2, column=2, sticky="e")
-        # Hovertip(self.save_competition_button, "Den aktuellen Wettkampf speichern")
+
         self.finish_competition_button = ttk.Button(
             self.current_competition_labelframe,
             text="Wettbewerb beenden",
@@ -166,7 +159,7 @@ class CompetitionControlFrame(DefaultFrame):
         self.proceed()
 
     def show_visualisation(self):
-        self.parent.visualisation=Visualisation(self.parent)
+        self.parent.visualisation = Visualisation(self.parent)
         self.parent.visualisation.show_competitions()
 
     def reset(self):

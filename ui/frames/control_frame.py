@@ -15,6 +15,7 @@ from ui.frames.club_settings_frame import ClubSettingsFrame
 from ui.frames.output_frame import OutputFrame
 from ui.frames.select_club_frame import SelectClubFrame
 from ui.frames.show_inactive_competitons_frame import ShowInactiveCompetitions
+from ui.windows.visualisation_window import Visualisation
 from .select_user_frame import SelectUserFrame
 from .select_team_frame import SelectTeamFrame
 from .team_settings_frame import TeamSettingsFrame
@@ -41,7 +42,7 @@ class ControlFrame(ttk.Frame):
     source: Machine
     teams: TeamDB
     team: Team = None
-    visualisation=None
+    visualisation: Visualisation = None
 
     def __init__(self, container):
         super().__init__(container)
