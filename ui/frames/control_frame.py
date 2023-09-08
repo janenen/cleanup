@@ -6,16 +6,13 @@ from tkinter import ttk
 from data.club import Club, ClubDB
 from data.competition import Competition, CompetitionDB
 from data.match import Match, MatchDB
-
-# from data.shooter import Shooter
-from data.user import User, UserDB  # , UserList, UserSettings
+from data.user import User, UserDB
 from data.team import Team, TeamDB
 from machines.machine import Machine
 from ui.frames.club_settings_frame import ClubSettingsFrame
 from ui.frames.output_frame import OutputFrame
 from ui.frames.select_club_frame import SelectClubFrame
 from ui.frames.show_inactive_competitons_frame import ShowInactiveCompetitions
-from ui.windows.visualisation_window import Visualisation
 from .select_user_frame import SelectUserFrame
 from .select_team_frame import SelectTeamFrame
 from .team_settings_frame import TeamSettingsFrame
@@ -42,7 +39,6 @@ class ControlFrame(ttk.Frame):
     source: Machine
     teams: TeamDB
     team: Team = None
-    visualisation: Visualisation = None
 
     def __init__(self, container):
         super().__init__(container)
@@ -66,7 +62,7 @@ class ControlFrame(ttk.Frame):
         self.active_competitions = self.competitions.get_active_competitions()
 
         # initialize frames
-        self.frames = {
+        self.frames: dict[str, ttk.Frame] = {
             "control": CompetitionControlFrame(container, self),
             "competition": CompetitionSettingsFrame(container, self),
             "machine": MaschineSelectionFrame(container, self),

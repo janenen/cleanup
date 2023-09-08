@@ -323,13 +323,6 @@ class UserResultFrame(DefaultFrame):
         self.activate_ok_button()
         self.deactivate_back_button()
 
-        # self.generate_button["state"] = "normal"
-        # if self.user:
-        #    self.extended.set(self.user.settings.extended_analysis)
-        # if self.current_match:
-        #    self.current_match: Match = self.current_match
-        # else:
-        #    self.current_match: Match = self.competition.entries[-1]
         self.actuallist = Series(self.current_match.shots)
         self.parent.competitions_frame.competition_listbox.configure(state="normal")
         self.parent.competitions_frame.update_entries()

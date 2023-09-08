@@ -19,54 +19,66 @@ class Visualisation(Toplevel):
         self.title("Visualisierung")
         self.geometry("800x800")
         self.iconbitmap(os.path.join("ui", "logo.ico"))
-        self.competition_frames = {}
-
-        self.keep_updating = False
-
-    def show_competitions(self):
-        for competition in self.parent.active_competitions:
-            self.competition_frames[competition.id] = VisualisationFrame(
-                self, competition
-            )
-        self.competition_frames[competition.id].tkraise()
+        self.competition_frames: dict[str, CompetitionVisualisationFrame] = {}
         self.keep_updating = True
-        self.update_thread = Thread(target=self.update_thread_function).start()
+        Thread(target=self.update_thread_function).start()
+
+    def update(self):
+        for competition in self.parent.active_competitions:
+            if competition.entries:
+                if not competition.id in self.competition_frames.keys():
+                    self.competition_frames[
+                        competition.id
+                    ] = CompetitionVisualisationFrame(self, competition)
+            for frame in self.competition_frames.keys():
+                if frame not in [comp.id for comp in self.parent.active_competitions]:
+                    del self.competition_frames[frame]
 
     def update_thread_function(self):
         while self.keep_updating:
-            for id in self.competition_frames:
-                self.competition_frames[id].tkraise()
-                time.sleep(2)
+            self.update()
+            try:
+                for id in self.competition_frames:
+                    self.competition_frames[id].update()
+                    self.competition_frames[id].tkraise()
+                    time.sleep(2)
+            except Exception:
+                self.keep_updating = False
 
 
-class VisualisationFrame(Frame):
+class CompetitionVisualisationFrame(Frame):
     def __init__(self, container, competition: Competition):
         super().__init__(container)
-        self.container = container
+        self.container: Visualisation = container
+        self.competition: Competition = competition
         self.width = self.container.winfo_width() - 20
-        self.height = self.container.winfo_height() - 20
-        self.count = len(competition.entries)
-        self.size = min(self.height / 2, 2 * self.width / self.count)
-        self.match_frames = {}
+        self.height = self.container.winfo_height() - 50
+        self.size = min(
+            self.height / 2, self.width / (len(competition.entries) // 2 + 1)
+        )
+        self.match_frames: dict[str, ResultVisualisationFrame] = {}
         label = Label(self, text=competition.name)
         label.grid(column=0, row=0)
-        for i, entry_id in enumerate(competition.entries):
-            self.match_frames[entry_id] = ResultFrame(
-                self, self.container.parent.matches[entry_id]
-            )
-            self.match_frames[entry_id].grid(
-                row=i % 2 + 1, column=i // 2, sticky="nesw"
-            )
+
         self.grid(row=0, column=0, sticky="nesw")
 
+    def update(self):
+        for match_id in self.competition.entries:
+            if not match_id in self.match_frames.keys():
+                self.match_frames[match_id] = ResultVisualisationFrame(
+                    self, self.container.parent.matches[match_id]
+                )
+        for i, frame in enumerate(self.match_frames.items()):
+            frame[1].grid(row=i % 2 + 1, column=i // 2, sticky="nesw")
 
-class ResultFrame(Frame):
+
+class ResultVisualisationFrame(Frame):
     def __init__(self, container, match: Match):
-        self.container = container
+        self.container: CompetitionVisualisationFrame = container
         super().__init__(container)
         label = Label(self, text=match.shooter.name)
         label.grid(column=0, row=0)
-        self.match = match
+        self.match: Match = match
 
         self.canvas = Canvas(
             self, bg="white", height=self.container.size, width=self.container.size
@@ -108,8 +120,6 @@ class ResultFrame(Frame):
         radiusCalibre = RADIUS_DICT[self.match.type_of_target][4]
         radiusTen = RADIUS_DICT[self.match.type_of_target][0]
         incrementRing = RADIUS_DICT[self.match.type_of_target][2]
-        # self.canvas.xview_moveto(self.origX)
-        # self.canvas.yview_moveto(self.origY)
         w = 2 * (radiusTen + 9 * incrementRing)
         scalefactor = self.container.size / w
         for shot in self.match.shots:
@@ -118,7 +128,6 @@ class ResultFrame(Frame):
                 -(shot.y - radiusCalibre) * scalefactor + self.container.size / 2,
                 (shot.x + radiusCalibre) * scalefactor + self.container.size / 2,
                 -(shot.y + radiusCalibre) * scalefactor + self.container.size / 2,
-                # fill="orange" if a in self.match.ausreisser else "green",
                 fill="green",
                 tag="shot",
                 activefill="cyan",

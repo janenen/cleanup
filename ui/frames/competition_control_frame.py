@@ -159,8 +159,7 @@ class CompetitionControlFrame(DefaultFrame):
         self.proceed()
 
     def show_visualisation(self):
-        self.parent.visualisation = Visualisation(self.parent)
-        self.parent.visualisation.show_competitions()
+        Visualisation(self.parent)
 
     def reset(self):
         self.deactivate_ok_button()
@@ -183,6 +182,7 @@ class CompetitionControlFrame(DefaultFrame):
                 self.add_entry_button["state"] = "normal"
                 self.competition_name_label.config(text=self.competition.name)
                 self.competition_count_label.config(text=len(self.competition.entries))
+                self.finish_competition_button["state"] = "normal"
                 if self.competition.entries:
-                    self.finish_competition_button["state"] = "normal"
+
                     self.show_entries_button["state"] = "normal"

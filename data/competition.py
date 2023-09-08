@@ -31,13 +31,6 @@ class Competition:
         if not match.id in self.entries:
             self.entries.append(match.id)
 
-    # def get_sorted_results(self):
-    #    return sorted(
-    #        self.entries,
-    #        key=SORTING_FUNCTION[self.modus]["key"],
-    #        reverse=SORTING_FUNCTION[self.modus]["reverse"],
-    #    )
-
 
 @dataclass_json
 @dataclass
