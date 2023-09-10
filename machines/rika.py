@@ -1,7 +1,6 @@
 from .machine import Machine, MachineException
 import serial, time, re
 from serial.tools.list_ports_common import ListPortInfo
-from threading import Thread
 from data.shot import Shot
 from .machine import ReadingThread
 

@@ -1,10 +1,11 @@
 from abc import ABC, abstractmethod, abstractproperty
 from dataclasses import dataclass
-import os
+from dataclasses_json import dataclass_json
 from threading import Thread
 from data.shot import Shot
 
 
+@dataclass_json
 @dataclass
 class MachineSettings:
     count: int | None
@@ -19,9 +20,11 @@ class MachineException(Exception):
         super().__init__(self.message)
 
 
+@dataclass_json
+@dataclass
 class Machine(ABC):
-    settings: MachineSettings
-    _connection: str
+    settings: MachineSettings = None
+    _connection: str = None
 
     @property
     def connection(self):

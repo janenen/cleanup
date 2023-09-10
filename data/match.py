@@ -1,11 +1,18 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, field
+import json
+import os
+import statistics
+import uuid
+from dataclasses_json import dataclass_json
+
 from .shot import Shot
 from .series import Series
 from .shooter import Shooter
 import math
-from datetime import date
-from operator import add
-from machines.machine import Machine
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from data.competition import Competition
 
 RADIUS_DICT = {
     "LP": (575, 250, 800, 2975, 225),
@@ -26,68 +33,54 @@ RADIUS_DICT = {
 }  #
 
 
+@dataclass_json
 @dataclass
-class MatchSettings:
-    competition: str
-    decimal: bool
-    count: int
-    date: str
+class Match:
     shooter: Shooter
     type_of_target: str
+    date: str
+    shots: list[Shot] = field(default_factory=list)
+    id: str = ""
+    club: str = ""
+    team: str = ""
+    competitions: list[str] = field(default_factory=list)
 
-
-class Match:
-    settings: MatchSettings
-
-    def __init__(self, settings):
-        self.settings = settings
-        self.series = []
-        self.anzahl = 0
-        self.summe = 0
-        self.summe_ganz = 0
-        self.ablageRL = 0
-        self.ablageHT = 0
-        self.best = Shot()
-        self.worst = Shot()
-        # self.zehntel = False
-        # self.bewerb = "Training"
-        # self.name = ""
-        # self.verein = ""
-
-        # self.datum = date.today().strftime("%d.%m.%Y")
-        self.ausreisser = []
-        self.verteilung = [0] * 11
+    def get_result(self, decimal: bool = False):
+        return round(self.summe if decimal else self.summe_ganz, 1)
 
     @property
-    def result(self):
-        return self.summe if self.settings.decimal else self.summe_ganz
+    def best(self) -> Shot:
+        return max(self.shots)
 
-    def update(self):
-        self.anzahl = 0
-        self.summe = 0
-        self.summe_ganz = 0
-        self.ablageRL = 0
-        self.ablageHT = 0
-        self.best = None
-        self.worst = None
-        bestShots = []
-        worstShots = []
-        self.verteilung = [0] * 11
+    @property
+    def worst(self) -> Shot:
+        return min(self.shots)
 
-        for series in self.series:
-            series.update()
-            self.anzahl += series.anzahl
-            self.summe += series.summe
-            self.summe_ganz += series.summe_ganz
-            self.ablageRL += series.ablageRL / len(self.series)
-            self.ablageHT += series.ablageHT / len(self.series)
-            bestShots.append(series.best)
-            worstShots.append(series.worst)
-            self.verteilung = list(map(add, self.verteilung, series.verteilung))
+    @property
+    def ablageRL(self):
+        return statistics.mean([s.x for s in self.shots])
 
-        if self.anzahl > 0:
-            self.best = max(bestShots)
-            self.worst = min(worstShots)
+    @property
+    def ablageHT(self):
+        return statistics.mean([s.y for s in self.shots])
+
+    @property
+    def summe(self):
+        return sum([s.ringe for s in self.shots])
+
+    @property
+    def summe_ganz(self):
+        return sum([s.ringe_ganz for s in self.shots])
+
+    @property
+    def anzahl(self):
+        return len(self.shots)
+
+    @property
+    def series(self):
+        return [
+            Series(self.shots[n * 10 : n * 10 + 10]) for n in range(self.anzahl // 10)
+        ]
 
     def get_x_list(self):
         return [s.x for s in self]
@@ -101,26 +94,6 @@ class Match:
     def get_r_list(self):
         return [s.ringe for s in self]
 
-    def getOutliers(self, l=0.5):
-        if self.anzahl > 4:
-            self.ausreisser = []
-            for series in self.series:
-                series.getOutliers(l)
-                self.ausreisser.extend(series.ausreisser)
-
-    def addSeries(self, series):
-        self.series.append(series)
-        self.update()
-
-    def fromShotlist(self, shotlist):
-        self.series = []
-        if len(shotlist) > 0:
-            for i in range(0, int((len(shotlist) - 1) / 10) + 1):
-                self.addSeries(Series(self.settings.decimal))
-            for n, shot in enumerate(shotlist):
-                self.series[int(n / 10)].addShot(shot)
-        self.update()
-
     def countRing(self, wert):
         n = 0
         for s in self:
@@ -128,23 +101,57 @@ class Match:
                 n += 1
         return n
 
+    def add_competition(self, competition: "Competition"):
+        if not competition.id in self.competitions:
+            self.competitions.append(competition.id)
+
     def __str__(self):
         retval = ""
-        retval += f"{self.settings.shooter.name} {self.settings.type_of_target} {self.settings.date}\r\n"
+        retval += f"{self.shooter.name} {self.type_of_target} {self.date}\r\n"
         for ser in self.series:
             retval = retval + str(ser) + "\r\n"
         return retval
-
-    def __getitem__(self, key):
-        return self.series[key]
-
-    def __setitem__(self, key, value):
-        self.series[key] = value
 
     def __iter__(self):
         return self.__generatorfunction()
 
     def __generatorfunction(self):
-        for series in self.series:
-            for shot in series:
-                yield shot
+        for shot in self.shots:
+            yield shot
+
+
+@dataclass_json
+@dataclass
+class MatchDB:
+    matches: dict[str, Match] = field(default_factory=dict)
+
+    def save(self, file="./db/matches.json"):
+        with open(file, "w") as json_file:
+            json_file.write(json.dumps(json.loads(self.to_json()), indent=2))
+
+    def load(file="./db/matches.json"):
+        if not os.path.exists(os.path.dirname(file)):
+            os.mkdir(os.path.dirname(file))
+        try:
+            with open(file, "r") as json_file:
+                db = MatchDB.from_json(json_file.read())
+        except Exception as e:
+            print(e)
+            print("Matches file not existing")
+            db = MatchDB()
+            db.save(file)
+        return db
+
+    def add_match(self, match: Match) -> str:
+        if not match.id:
+            id = str(uuid.uuid4())
+            match.id = id
+        if not match.id in self.matches.keys():
+            self.matches[match.id] = match
+        return match.id
+
+    def __getitem__(self, key):
+        return self.matches[key]
+
+    def __iter__(self):
+        return iter(self.matches.items())

@@ -3,12 +3,12 @@ from tkinter import ttk
 from idlelib.tooltip import Hovertip
 from machines import find_machines
 from machines.machine import MachineSettings
+from .default_frame import DefaultFrame
 
 
-class MaschineSelectionFrame(ttk.Frame):
+class MaschineSelectionFrame(DefaultFrame):
     def __init__(self, container, parent):
-        super().__init__(container)
-        self.parent = parent
+        super().__init__(container, parent)
 
         options = {"padx": 5, "pady": 0}
         self.portscrollbar = tk.Scrollbar(self)
@@ -29,7 +29,7 @@ class MaschineSelectionFrame(ttk.Frame):
 
         # add padding to the frame and show it
         self.columnconfigure(0, weight=1)
-        self.grid(column=0, row=0, padx=5, pady=5, sticky="nsew")
+        self.grid(column=1, row=0, padx=5, pady=5, sticky="nsew")
 
     def reload(self):
         self.available_machines = find_machines()
@@ -37,26 +37,25 @@ class MaschineSelectionFrame(ttk.Frame):
         for machine in self.available_machines:
             self.portlistbox.insert("end", str(machine))
 
-        self.parent.ok_button["state"] = "disabled"
+        self.deactivate_ok_button()
 
     def select(self, event):
         """Handle list click event"""
         item = self.portlistbox.curselection()
         if not item:
             return
-        self.parent.competition.source = self.available_machines[item[0]]
-        self.parent.competition.source.settings = MachineSettings(
-            count=self.parent.competition.settings.count,
-            shots_per_target=self.parent.competition.settings.shots_per_target,
-            type_of_target=self.parent.competition.settings.type_of_target,
+        self.source = self.available_machines[item[0]]
+        self.source.settings = MachineSettings(
+            count=self.competition.count,
+            shots_per_target=self.competition.shots_per_target,
+            type_of_target=self.competition.type_of_target,
             filepath=None,
         )
-        self.parent.ok_button["state"] = "normal"
+        self.activate_ok_button()
         self.portlistbox.unbind("<<ListboxSelect>>")
-        self.parent.actionOK()
+        self.proceed()
 
-    def reset(self, back=False):
+    def reset(self):
         self.test_label.config(text="Port auswählen")
         self.portlistbox.bind("<<ListboxSelect>>", self.select)
-        self.onreset = not back
         self.reload()

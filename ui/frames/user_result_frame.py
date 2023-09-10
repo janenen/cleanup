@@ -1,27 +1,27 @@
 import tkinter as tk
 from tkinter import ttk
-from datetime import datetime
-import math
 from data.series import Series
-import pdfgenerator
+import ui.frames.output_frame as output_frame
 from idlelib.tooltip import Hovertip
-from data.match import Match, RADIUS_DICT
-from configparser import ConfigParser
+from data.match import RADIUS_DICT
+from .default_frame import DefaultFrame
 
 
-class UserResultFrame(ttk.Frame):
+class UserResultFrame(DefaultFrame):
+    actuallist: Series
+
     def __init__(self, container, parent):
-        super().__init__(container)
-        self.parent = parent
+        super().__init__(container, parent)
         # field options
         options = {"padx": 5, "pady": 0}
         self.i = 0
         self.shotcircles = {}
-        self.canvsize = 200
+        self.canvsize = 220
         self.canvas = tk.Canvas(
             self, bg="white", height=self.canvsize, width=self.canvsize
         )
         self.canvas.place(height=self.canvsize, width=self.canvsize)
+        self.export = False
 
         # self.canvas.bind("<ButtonPress-1>", self.scroll_start)
         # self.canvas.bind("<B1-Motion>", self.scroll_move)
@@ -77,7 +77,7 @@ class UserResultFrame(ttk.Frame):
         self.devylabel.grid(row=3, column=1, sticky="w")
         self.resultlabelframe.place(
             x=self.canvsize,
-            y=self.canvsize * 0 / 8,
+            y=self.canvsize * 0 / 9,
             height=self.canvsize * 5 / 10,
             width=self.canvsize * 3 / 4,
         )
@@ -105,27 +105,31 @@ class UserResultFrame(ttk.Frame):
         self.teilerlabel.grid(column=1, row=3, sticky="w")
         self.infolabelframe.place(
             x=self.canvsize,
-            y=self.canvsize * 4 / 8,
+            y=self.canvsize * 4 / 9,
             height=self.canvsize * 5 / 10,
             width=self.canvsize * 3 / 4,
         )
         self.shotlabellist = []
 
+        self.inputlabelframe = ttk.LabelFrame(self, text="Speichern")
         # user input
         self.generate_button = ttk.Button(
-            self, text="Drucken / Speichern", command=self.actionSpeichern
+            self.inputlabelframe,
+            text="Exportieren",
+            command=self.action_export,
         )
-        self.generate_button.place(
+        self.generate_button.grid(column=0, row=0, sticky="we")
+        self.inputlabelframe.place(
             x=self.canvsize,
-            y=self.canvsize,
-            height=self.canvsize / 8,
+            y=self.canvsize * 8 / 9,
+            height=self.canvsize * 3 / 9,
             width=self.canvsize * 3 / 4,
         )
         Hovertip(
             self.generate_button,
             "Ergebnis speichern\nDas Ergebnis wird gespeichert und ein druckbarer Bericht geöffnet",
         )
-        self.grid(column=0, row=0, padx=5, pady=5, sticky="nsew")
+        self.grid(column=1, row=0, padx=5, pady=5, sticky="nsew")
 
     """def scroll_start(self, event):
         self.canvas.scan_mark(event.x, event.y)
@@ -141,99 +145,75 @@ class UserResultFrame(ttk.Frame):
 
     def actionFore(self):
         self.i += 1
-        if self.i == 0 or self.i > len(self.match.series):
+        if self.i == 0 or self.i > len(self.current_match.shots) / 10:
             self.i = 0
-            self.actuallist = self.match
+            self.actuallist = Series(self.current_match.shots)
             self.serieslabel.config(text="Gesammt")
             self.resultlabelframe.config(text="Gesammtergebnis")
             self.redraw_shots()
             self.write_shots()
         else:
-            self.actuallist = self.match.series[self.i - 1]
-            self.serieslabel.config(text="Serie {:d}".format(self.i))
-            self.resultlabelframe.config(text="Serie {:d}".format(self.i))
+            start_index = (self.i - 1) * 10
+            end_index = start_index + 10
+            self.actuallist = Series(self.current_match.shots[start_index:end_index])
+            self.serieslabel.config(text=f"Serie {self.i}")
+            self.resultlabelframe.config(text=f"Serie {self.i}")
             self.redraw_shots()
             self.write_shots()
 
     def actionBack(self):
         self.i -= 1
         if self.i < 0:
-            self.i = len(self.match.series)
-            self.actuallist = self.match.series[self.i - 1]
-            self.serieslabel.config(text="Serie {:d}".format(self.i))
-            self.resultlabelframe.config(text="Serie {:d}".format(self.i))
+            self.i = len(self.current_match.shots) // 10 + 1
+            start_index = (self.i - 1) * 10
+            end_index = start_index + 10
+            self.actuallist = Series(self.current_match.shots[start_index:end_index])
+            self.serieslabel.config(text=f"Serie {self.i}")
+            self.resultlabelframe.config(text=f"Serie {self.i}")
         elif self.i == 0:
-            self.i = len(self.match.series)
-            self.actuallist = self.match
+            # self.i = len(self.current_match.shots)/10
+            self.actuallist = Series(self.current_match.shots)
             self.serieslabel.config(text="Gesammt")
             self.resultlabelframe.config(text="Gesammtergebnis")
         else:
-            self.actuallist = self.match.series[self.i - 1]
-            self.serieslabel.config(text="Serie {:d}".format(self.i))
-            self.resultlabelframe.config(text="Serie {:d}".format(self.i))
+            start_index = (self.i - 1) * 10
+            end_index = start_index + 10
+            self.actuallist = Series(self.current_match.shots[start_index:end_index])
+            self.serieslabel.config(text=f"Serie {self.i}")
+            self.resultlabelframe.config(text=f"Serie {self.i}")
         self.redraw_shots()
         self.write_shots()
 
-    def actionSpeichern(self):
-        userconfig = ConfigParser()
-        userconfigpath = "./schuetzen.ini"
-        userconfig.read(userconfigpath)
-        usersection = self.match.settings.shooter.name.replace(" ", "")
-        if userconfig.has_section(usersection):
-            if userconfig.has_option(usersection, "niceness"):
-                niceness = userconfig.getint(usersection, "niceness") + 1
-            else:
-                niceness = 1
-            userconfig[usersection]["niceness"] = str(niceness)
-            with open(userconfigpath, "w") as configfile:
-                userconfig.write(configfile)
-        self.actionCSV()
-        self.actionPDF()
-
-    def actionCSV(self):
-        filedate = datetime.strptime(self.match.settings.date, "%d.%m.%Y")
-        filepath = self.match.settings.shooter.name.replace(" ", "_") + "\\csv"
-        filename = datetime.strftime(filedate, "%y%m%d")
-
-        pdfgenerator.CSVgen.makeCSV(self.match, filepath, filename)
-
-    def actionPDF(self):
-        filedate = datetime.strptime(self.match.settings.date, "%d.%m.%Y")
-        filepath = self.match.settings.shooter.name.replace(" ", "_")
-        filename = f"""{datetime.strftime(filedate, "%y%m%d")}_{self.match.settings.type_of_target}"""
-        pdfgenerator.PDFgen.makeShooterPDF(
-            self.match,
-            filepath,
-            filename,
-        )
-        self.generate_button["state"] = "disabled"
+    def action_export(self):
+        self.export = True
+        self.proceed()
 
     """def recalc(self,event=None):
-        self.match.getOutliers(l=self.l_value.get())
+        self.current_match.getOutliers(l=self.l_value.get())
         self.redraw_shots()"""
 
     def redraw_shots(self):
         self.shotcircles.clear()
         self.canvas.delete("shot")
-        radiusCalibre = RADIUS_DICT[self.match.settings.type_of_target][4]
-        radiusTen = RADIUS_DICT[self.match.settings.type_of_target][0]
-        incrementRing = RADIUS_DICT[self.match.settings.type_of_target][2]
+        radiusCalibre = RADIUS_DICT[self.current_match.type_of_target][4]
+        radiusTen = RADIUS_DICT[self.current_match.type_of_target][0]
+        incrementRing = RADIUS_DICT[self.current_match.type_of_target][2]
         # self.canvas.xview_moveto(self.origX)
         # self.canvas.yview_moveto(self.origY)
         w = 2 * (radiusTen + 9 * incrementRing)
         scalefactor = self.canvsize / w
-        for a in self.actuallist:
+        for shot in self.actuallist:
             id = self.canvas.create_oval(
-                (a.x - radiusCalibre) * scalefactor + self.canvsize / 2,
-                -(a.y - radiusCalibre) * scalefactor + self.canvsize / 2,
-                (a.x + radiusCalibre) * scalefactor + self.canvsize / 2,
-                -(a.y + radiusCalibre) * scalefactor + self.canvsize / 2,
-                # fill="orange" if a in self.match.ausreisser else "green",
+                (shot.x - radiusCalibre) * scalefactor + self.canvsize / 2,
+                -(shot.y - radiusCalibre) * scalefactor + self.canvsize / 2,
+                (shot.x + radiusCalibre) * scalefactor + self.canvsize / 2,
+                -(shot.y + radiusCalibre) * scalefactor + self.canvsize / 2,
+                # fill="orange" if a in self.current_match.ausreisser else "green",
                 fill="green",
                 tag="shot",
                 activefill="cyan",
             )
-            self.shotcircles[id] = a
+            self.shotcircles[id] = shot
             self.canvas.tag_bind(id, "<Enter>", self.update_text)
 
     def update_text(self, event):
@@ -241,8 +221,8 @@ class UserResultFrame(ttk.Frame):
         self.ringlabel.config(
             text=(
                 "{:.1f}".format(self.shotcircles[id].ringe)
-                if self.match.settings.decimal
-                else "{:d}".format(math.floor(self.shotcircles[id].ringe))
+                if self.competition.decimal
+                else f"{self.shotcircles[id].ringe_ganz}"
             )
         )
         self.xlabel.config(text="{:.2f}".format(self.shotcircles[id].x / 100))
@@ -253,9 +233,9 @@ class UserResultFrame(ttk.Frame):
 
     def redraw_target(self):
         self.canvas.delete("ring")
-        radiusTen = RADIUS_DICT[self.match.settings.type_of_target][0]
-        incrementRing = RADIUS_DICT[self.match.settings.type_of_target][2]
-        radiusBlack = RADIUS_DICT[self.match.settings.type_of_target][3]
+        radiusTen = RADIUS_DICT[self.current_match.type_of_target][0]
+        incrementRing = RADIUS_DICT[self.current_match.type_of_target][2]
+        radiusBlack = RADIUS_DICT[self.current_match.type_of_target][3]
         w = 2 * (radiusTen + 9 * incrementRing)
         scalefactor = self.canvsize / w
         spiegel = self.canvas.create_oval(
@@ -283,14 +263,14 @@ class UserResultFrame(ttk.Frame):
         self.resultlabel.config(
             text=(
                 "{:.1f}".format(self.actuallist.summe)
-                if self.actuallist.settings.decimal
+                if self.competition.decimal
                 else "{:d}".format(self.actuallist.summe_ganz)
             )
         )
         self.schnittlabel.config(
             text=(
                 "{:.2f}".format(self.actuallist.summe / self.actuallist.anzahl)
-                if self.actuallist.settings.decimal
+                if self.competition.decimal
                 else "{:.2f}".format(
                     self.actuallist.summe_ganz / self.actuallist.anzahl
                 )
@@ -301,13 +281,13 @@ class UserResultFrame(ttk.Frame):
         for label in self.shotlabellist:
             label.destroy()
         self.shotlabellist = []
-        for n, A in enumerate(self.actuallist):
+        for n, shot in enumerate(self.current_match.shots):
             label = ttk.Label(
                 self,
                 text=(
-                    "{:.1f}".format(A.ringe)
-                    if self.match.settings.decimal
-                    else "{:d}".format(math.floor(A.ringe))
+                    "{:.1f}".format(shot.ringe)
+                    if self.competition.decimal
+                    else "{:d}".format(shot.ringe_ganz)
                 ),
                 anchor="center",
             )
@@ -318,46 +298,43 @@ class UserResultFrame(ttk.Frame):
                 width=self.canvsize / 6,
             )
             self.shotlabellist.append(label)
-        if isinstance(self.actuallist, Match):
-            for n, S in enumerate(self.actuallist.series):
+            if n > 0 and (n + 1) % 10 == 0:
+                end_index = n + 1
+                start_index = end_index - 10
+                current_series = Series(self.current_match.shots[start_index:end_index])
                 label = ttk.Label(
                     self,
                     text=(
-                        "{:.1f}".format(S.summe)
-                        if self.match.settings.decimal
-                        else "{:d}".format(S.summe_ganz)
+                        "{:.1f}".format(current_series.summe)
+                        if self.competition.decimal
+                        else "{:d}".format(current_series.summe_ganz)
                     ),
                     anchor="center",
                 )
                 label.place(
-                    x=(15 / 8 + n / 6) * self.canvsize,
+                    x=(15 / 8 + (n // 10) / 6) * self.canvsize,
                     y=(11 / 11) * self.canvsize,
                     height=self.canvsize / 11,
                     width=self.canvsize / 6,
                 )
                 self.shotlabellist.append(label)
-        else:
-            label = ttk.Label(
-                self,
-                text=(
-                    "{:.1f}".format(self.actuallist.summe)
-                    if self.match.settings.decimal
-                    else "{:d}".format(self.actuallist.summe_ganz)
-                ),
-                anchor="center",
-            )
-            label.place(
-                x=(15 / 8) * self.canvsize,
-                y=self.canvsize,
-                height=self.canvsize / 11,
-                width=self.canvsize / 6,
-            )
-            self.shotlabellist.append(label)
 
-    def reset(self, back=False):
-        self.generate_button["state"] = "normal"
-        self.match: Match = self.parent.competition.current_match
-        self.actuallist: Series | Match = self.match
+    def reset(self):
+        self.activate_ok_button()
+        self.deactivate_back_button()
+
+        # self.generate_button["state"] = "normal"
+        # if self.user:
+        #    self.extended.set(self.user.settings.extended_analysis)
+        # if self.current_match:
+        #    self.current_match: Match = self.current_match
+        # else:
+        #    self.current_match: Match = self.competition.entries[-1]
+        self.actuallist = Series(self.current_match.shots)
+        self.parent.competitions_frame.competition_listbox.configure(state="normal")
+        self.parent.competitions_frame.update_entries()
+        self.serieslabel.config(text="Gesammt")
+        self.resultlabelframe.config(text="Gesammtergebnis")
         self.write_shots()
 
         # self.l_slider.set(1)

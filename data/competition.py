@@ -1,46 +1,90 @@
-from datetime import date
-from .match import Match, MatchSettings
-from .shooter import Shooter
-from machines.machine import Machine
+from dataclasses import dataclass, field
+import json
+import os
+import uuid
+from dataclasses_json import dataclass_json
+from .match import Match
 
 
-class CompetitionSettings:
+SORTING_FUNCTION = {
+    "Bestes Ergebnis": {"key": lambda x: x.get_result(), "reverse": True},
+    "Bestes Ergebnis Zehntel": {"key": lambda x: x.get_result(True), "reverse": True},
+    "Bester Teiler": {"key": lambda x: x.best.teiler, "reverse": False},
+}
+
+
+@dataclass_json
+@dataclass
+class Competition:
     name: str
     date: str
     count: int
     shots_per_target: int
-    type_of_target: int
+    type_of_target: str
     decimal: bool
+    active: bool = True
+    modus: str = "Bestes Ergebnis"
+    entries: list[str] = field(default_factory=list)
+    id: str = ""
+
+    def add_match(self, match: Match):
+        if not match.id in self.entries:
+            self.entries.append(match.id)
+
+    # def get_sorted_results(self):
+    #    return sorted(
+    #        self.entries,
+    #        key=SORTING_FUNCTION[self.modus]["key"],
+    #        reverse=SORTING_FUNCTION[self.modus]["reverse"],
+    #    )
 
 
-class Competition:
-    settings: CompetitionSettings
-    source: Machine
-    entries: list[Match] = []
-    _current_match: Match
+@dataclass_json
+@dataclass
+class CompetitionDB:
+    competitions: dict[str, Competition] = field(default_factory=dict)
 
-    def __init__(self, settings):
-        self.settings = settings
+    def save(self, file="./db/competitions.json"):
+        with open(file, "w") as json_file:
+            json_file.write(json.dumps(json.loads(self.to_json()), indent=2))
 
-    def add_match(self, shooter: Shooter):
-        new_match = Match(
-            MatchSettings(
-                competition=self.settings.name,
-                decimal=self.settings.decimal,
-                count=self.settings.count,
-                date=date.today().strftime("%d.%m.%Y"),
-                shooter=shooter,
-                type_of_target=self.settings.type_of_target,
-            )
-        )
+    def load(file="./db/competitions.json"):
+        if not os.path.exists(os.path.dirname(file)):
+            os.mkdir(os.path.dirname(file))
+        try:
+            with open(file, "r") as json_file:
+                db = CompetitionDB.from_json(json_file.read())
+        except Exception as e:
+            print(e)
+            print("Matches file not existing")
+            db = CompetitionDB()
+            db.save(file)
+        return db
 
-        self.entries.append(new_match)
-        self._current_match = self.entries[-1]
+    def add_competition(self, competition: Competition) -> str:
+        if not competition.id:
+            id = str(uuid.uuid4())
+            competition.id = id
+        if not competition.id in self.competitions.keys():
+            self.competitions[id] = competition
+        return competition.id
 
-    @property
-    def current_match(self):
-        return self._current_match
+    def get_active_competitions(self) -> list[Competition]:
+        returnlist = []
+        for comp in self.competitions.items():
+            if comp[1].active:
+                returnlist.append(comp[1])
+        return returnlist
 
-    def get_sorted_results(self):
-        return self.entries
-        # add sort function later
+    def get_inactive_competitions(self) -> list[Competition]:
+        returnlist = []
+        for comp in self.competitions.items():
+            if not comp[1].active:
+                returnlist.append(comp[1])
+        return returnlist
+
+    def __getitem__(self, key):
+        return self.competitions[key]
+
+    def __iter__(self):
+        return iter(self.competitions.items())

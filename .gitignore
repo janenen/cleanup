@@ -4,3 +4,7 @@ ui/frames/__pycache__
 output
 build
 dist
+*.json
+*.zip
+*.csv
+db

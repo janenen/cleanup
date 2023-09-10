@@ -1,18 +1,13 @@
-import configparser
 import tkinter as tk
 from tkinter import ttk
-import os
-from data.shooter import Shooter
+from data.user import User
+from idlelib.tooltip import Hovertip
+from .default_frame import DefaultFrame
 
 
-class SelectUserFrame(ttk.Frame):
+class SelectUserFrame(DefaultFrame):
     def __init__(self, container, parent):
-        super().__init__(container)
-        self.parent = parent
-        self.userconfig = configparser.ConfigParser()
-        self.usersection = ""
-        self.userconfigpath = "./schuetzen.ini"
-
+        super().__init__(container, parent)
         options = {"padx": 5, "pady": 0}
         self.scrollbar = tk.Scrollbar(self)
         self.userlistbox = tk.Listbox(self, height=10, width=50)
@@ -23,75 +18,126 @@ class SelectUserFrame(ttk.Frame):
         self.userlistbox.bind("<<ListboxSelect>>", onselect)
         self.userlistbox.config(yscrollcommand=self.scrollbar.set)
         self.scrollbar.config(command=self.userlistbox.yview)
-        self.scrollbar.grid(column=2, row=0, sticky="wens")
-        self.userlistbox.grid(columnspan=2, column=0, row=0, sticky="ew")
+        self.scrollbar.grid(column=4, row=0, sticky="wens")
+        self.userlistbox.grid(columnspan=4, column=0, row=0, sticky="ew")
 
-        self.test_label = ttk.Label(self, text="")
-        self.test_label.grid(columnspan=2, column=0, row=2, sticky="nesw", **options)
+        ttk.Label(self, text="Name: ").grid(column=0, row=1, sticky="nesw", **options)
+        self.name_label = ttk.Label(self, text="")
+        self.name_label.grid(column=1, row=1, sticky="w", **options)
 
-        self.columnconfigure(0, weight=1)
+        ttk.Label(self, text="Verein: ").grid(column=0, row=2, sticky="nesw", **options)
+        self.club_label = ttk.Label(self, text="")
+        self.club_label.grid(column=1, row=2, sticky="nesw", **options)
+        self.club_button = ttk.Button(self, text="Auswählen")
+        self.club_button.grid(column=3, row=2, sticky="w", **options)
+        Hovertip(self.club_button, "Verein auswählen")
+
+        ttk.Label(self, text="Mannschaft: ").grid(
+            column=0, row=3, sticky="nesw", **options
+        )
+        self.team_label = ttk.Label(self, text="")
+        self.team_label.grid(column=1, row=3, sticky="nesw", **options)
+        self.club_button.configure(command=self.select_club)
+
+        self.team_button = ttk.Button(self, text="Auswählen")
+        self.team_button.grid(column=3, row=3, sticky="w", **options)
+        Hovertip(self.team_button, "Mannschaft auswählen")
+        self.team_button.configure(command=self.select_team)
+
+        self.new_button = ttk.Button(self, text="Neuer Benutzer")
+        self.new_button.grid(column=2, row=1, sticky="e", **options)
+        Hovertip(self.new_button, "Neuen Benutzer anlegen")
+        self.new_button.configure(command=self.new)
+
+        self.edit_button = ttk.Button(self, text="Bearbeiten")
+        self.edit_button.grid(column=3, row=1, sticky="e", **options)
+        Hovertip(self.edit_button, "Benutzer bearbeiten")
+        self.edit_button.configure(command=self.edit)
+        self.columnconfigure(1, weight=1)
 
         # add padding to the frame and show it
-        self.grid(column=0, row=0, padx=5, pady=5, sticky="nsew")
+        self.grid(column=1, row=0, padx=5, pady=5, sticky="nsew")
+        self.select_team_var = False
+        self.select_club_var = False
+        self.edit_shooter = False
+        self.create_new_user = False
 
     def select(self, event):
-        self.new_shooter = False
+        self.edit_shooter = False
+        self.create_new_user = False
         selection = self.userlistbox.curselection()
-
         if len(selection) > 0:
             n = selection[0]
-            if n < len(self.userconfig.sections()):
-                self.usersection = sorted(
-                    self.userconfig.sections(), key=self.get_niceness, reverse=True
-                )[n]
-                self.test_label.config(
-                    text=self.userconfig.get(self.usersection, "Name")
-                )
+            if n < len(self.users.users):
+                self.user = self.userlist[n][1]
+                self.name_label.config(text=self.user.name)
+                self.club_label.config(text=self.club.name if self.club else "")
+                self.team_label.config(text=self.team.name if self.team else "")
+                self.edit_button["state"] = "normal"
+                self.club_button["state"] = "normal"
+                self.team_button["state"] = "normal"
             else:
-                self.new_shooter = True
-                self.test_label.config(text="Neuer Schütze")
-        self.parent.back_button["state"] = "normal"
-        self.parent.ok_button["state"] = "normal"
+                pass
 
-    def reset(self, back=False):
-        self.test_label.config(text="Schütze auswählen")
+        self.activate_back_button()
+        self.activate_ok_button()
 
-        if not os.path.exists(self.userconfigpath):
-            self.userconfig["DEFAULT"] = {
-                "Name": "Neuer Schütze",
-                "Verein": "",
-                "Mannschaft": "",
-                "niceness": "0",
-            }
-            with open(self.userconfigpath, "w") as configfile:
-                self.userconfig.write(configfile)
-        self.userconfig.read(self.userconfigpath)
-
+    def reset(self):
+        self.name_label.config(
+            text=self.user.name if self.user else "Schütze auswählen"
+        )
+        self.club_label.config(text=self.club.name if self.club else "-")
+        self.club_button["state"] = "normal" if self.user else "disabled"
+        self.team_label.config(text=self.team.name if self.team else "-")
+        self.team_button["state"] = "normal" if self.user else "disabled"
         self.userlistbox.delete("0", "end")
+        self.userlist = [user for user in self.users]
+        for user in self.userlist:
+            self.userlistbox.insert("end", user[1].name)
 
-        for section in sorted(
-            self.userconfig.sections(), key=self.get_niceness, reverse=True
-        ):
-            self.userlistbox.insert("end", self.userconfig.get(section, "Name"))
-        self.userlistbox.insert("end", "Neuer Schütze")
         self.userlistbox.bind("<<ListboxSelect>>", self.select)
-        self.parent.back_button["state"] = "disabled"
-        self.parent.ok_button["state"] = "disabled"
-
-    def get_niceness(self, section):
-        if self.userconfig.has_option(section, "niceness"):
-            return self.userconfig.getint(section, "niceness")
+        # self.deactivate_back_button()
+        if not self.user:
+            self.deactivate_ok_button()
         else:
-            return 0
+            self.activate_ok_button()
+        self.edit_button["state"] = "disabled"
+
+    def edit_user(self):
+        self.userlistbox.unbind("<<ListboxSelect>>")
+        return self.edit_shooter
 
     def new_user(self):
         self.userlistbox.unbind("<<ListboxSelect>>")
-        if not self.new_shooter:
-            self.parent.competition.add_match(
-                Shooter(
-                    name=self.userconfig[self.usersection]["Name"],
-                    club=self.userconfig[self.usersection]["Verein"],
-                    team=None,
-                )
-            )
-        return self.new_shooter
+        return self.create_new_user
+
+    def edit(self):
+        self.edit_shooter = True
+        self.proceed()
+
+    def new(self):
+        self.user = None
+        self.create_new_user = True
+        self.proceed()
+
+    def team_to_select(self):
+        if self.select_team_var == True:
+            self.select_team_var = False
+            return True
+        else:
+            return False
+
+    def select_team(self):
+        self.select_team_var = True
+        self.proceed()
+
+    def club_to_select(self):
+        if self.select_club_var == True:
+            self.select_club_var = False
+            return True
+        else:
+            return False
+
+    def select_club(self):
+        self.select_club_var = True
+        self.proceed()

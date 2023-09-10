@@ -4,13 +4,13 @@ from tkinter.messagebox import showerror
 from datetime import date
 from idlelib.tooltip import Hovertip
 from data.match import RADIUS_DICT
-from data.competition import Competition, CompetitionSettings
+from data.competition import Competition, SORTING_FUNCTION
+from .default_frame import DefaultFrame
 
 
-class CompetitionSettingsFrame(ttk.Frame):
+class CompetitionSettingsFrame(DefaultFrame):
     def __init__(self, container, parent):
-        super().__init__(container)
-        self.parent = parent
+        super().__init__(container, parent)
         # field options
         options = {"padx": 5, "pady": 0}
 
@@ -27,6 +27,7 @@ class CompetitionSettingsFrame(ttk.Frame):
         ttk.Label(self, text="Zehntelwertung:").grid(
             column=0, row=5, sticky="e", **options
         )
+        ttk.Label(self, text="Modus:").grid(column=0, row=6, sticky="e", **options)
 
         self.name = tk.StringVar()
         self.name_entry = ttk.Entry(self, textvariable=self.name)
@@ -69,52 +70,84 @@ class CompetitionSettingsFrame(ttk.Frame):
             "Art der Scheibe / Disziplin",
         )
 
-        self.decimal = tk.BooleanVar()
-        self.decimal_box = tk.Checkbutton(self)
-        self.decimal_box["text"] = "Zehntelwertung"
-        self.decimal_box["variable"] = self.decimal
-        self.decimal_box.grid(column=1, row=5, sticky="w", **options)
-        Hovertip(self.decimal_box, "Wertung in Zehntelringen")
+        # self.decimal = tk.BooleanVar()
+        # self.decimal_box = tk.Checkbutton(self)
+        # self.decimal_box["text"] = "Zehntelwertung"
+        # self.decimal_box["variable"] = self.decimal
+        # self.decimal_box.grid(column=1, row=5, sticky="w", **options)
+        # Hovertip(self.decimal_box, "Wertung in Zehntelringen")
+
+        self.mode = tk.StringVar()
+        self.mode_menu = tk.OptionMenu(self, self.mode, *list(SORTING_FUNCTION.keys()))
+        self.mode_menu.grid(column=1, row=6, sticky="w", **options)
+        Hovertip(
+            self.type_of_target_menu,
+            "Art der Wertung",
+        )
 
         # add padding to the frame and show it
         self.columnconfigure(0, weight=1)
         self.columnconfigure(1, weight=1)
-        self.grid(column=0, row=0, padx=5, pady=5, sticky="nsew")
+        self.grid(column=1, row=0, padx=5, pady=5, sticky="nsew")
 
-    def reset(self, back=False):
+    def reset(self):
         self.name.set("Training")
         self.date.set(date.today().strftime("%d.%m.%Y"))
         self.count.set("40")
         self.shots_per_target.set("1")
         self.type_of_target.set("LG")
-        self.decimal.set(False)
+        # self.decimal.set(False)
+        self.mode.set("Bestes Ergebnis")
 
-        self.parent.back_button["state"] = "normal"
-        self.parent.ok_button["state"] = "normal"
+        self.activate_back_button()
+        self.activate_ok_button()
 
     def parseInput(self):
-        competition_settings = CompetitionSettings()
-        competition_settings.name = self.name.get()
-        competition_settings.decimal = self.decimal.get()
-        competition_settings.type_of_target = self.type_of_target.get()
-        if competition_settings.type_of_target == "":
+        name = self.name.get()
+        # decimal = self.decimal.get()
+        type_of_target = self.type_of_target.get()
+        if type_of_target == "":
             showerror(
                 title="Scheibentyp auswählen",
                 message="Kein gültiger Scheibentyp ausgewählt",
             )
             return False
-        competition_settings.date = self.date.get()
+        date = self.date.get()
 
         try:
-            competition_settings.count = int(self.count.get())
+            count = int(self.count.get())
         except ValueError as error:
             showerror(title="Das ist keine Zahl", message=error)
             return False
 
         try:
-            competition_settings.shots_per_target = int(self.shots_per_target.get())
+            shots_per_target = int(self.shots_per_target.get())
         except ValueError as error:
             showerror(title="Das ist keine Zahl", message=error)
             return False
-        self.parent.competition = Competition(competition_settings)
+        mode = self.mode.get()
+        if mode == "":
+            showerror(
+                title="Modus auswählen",
+                message="Kein gültiger Modus ausgewählt",
+            )
+            return False
+        decimal = True if mode == "Bestes Ergebnis Zehntel" else False
+        self.competition = Competition(
+            name=name,
+            date=date,
+            count=count,
+            shots_per_target=shots_per_target,
+            type_of_target=type_of_target,
+            decimal=decimal,
+            modus=mode,
+        )
+
+        if self.add_to_current_competition:
+            self.competitions.add_competition(self.competition)
+            self.competitions.save()
+            self.active_competitions.append(self.competition)
+        self.parent.competitions_frame.competition_listbox.configure(state="normal")
+        self.parent.competitions_frame.update_competitions()
+        self.parent.competitions_frame.competition_listbox.configure(state="disabled")
         return True
