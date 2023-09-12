@@ -20,12 +20,13 @@ from .select_team_frame import SelectTeamFrame
 from .team_settings_frame import TeamSettingsFrame
 from .reading_frame import ReadingFrame
 from .user_settings_frame import UserSettingsFrame
-from .machine_selection_frame import MaschineSelectionFrame
+from .machine_selection_frame import MachineSelectionFrame
 from .user_result_frame import UserResultFrame
 from .competition_settings_frame import CompetitionSettingsFrame
 from .competition_result_frame import CompetitionResultFrame
 from .competitions_frame import Competitions
 from .competition_control_frame import CompetitionControlFrame
+from .database_browser_frame import DatabaseBrowserFrame
 
 
 class ControlFrame(ttk.Frame):
@@ -53,7 +54,6 @@ class ControlFrame(ttk.Frame):
         self.ok_button = ttk.Button(self, text="OK", command=self.actionOK)
         self.ok_button.grid(column=2, row=0, padx=5, pady=5)
         self.grid(column=1, row=1, padx=5, pady=5, sticky="se")
-        # self.reset()
         self.competitions_frame = Competitions(container, self)
         # read DB
         self.users = UserDB.load()
@@ -67,7 +67,7 @@ class ControlFrame(ttk.Frame):
         self.frames = {
             "control": CompetitionControlFrame(container, self),
             "competition": CompetitionSettingsFrame(container, self),
-            "machine": MaschineSelectionFrame(container, self),
+            "machine": MachineSelectionFrame(container, self),
             "user": SelectUserFrame(container, self),
             "user_settings": UserSettingsFrame(container, self),
             "reading": ReadingFrame(container, self),
@@ -79,6 +79,7 @@ class ControlFrame(ttk.Frame):
             "club_settings": ClubSettingsFrame(container, self),
             "output": OutputFrame(container, self),
             "inactive_competitons": ShowInactiveCompetitions(container, self),
+            "database_browser": DatabaseBrowserFrame(container, self),
         }
         self.change_frame()
 
@@ -103,6 +104,8 @@ class ControlFrame(ttk.Frame):
                 sys.exit(0)
             elif self.frames["control"].next_step == "show old competitions":
                 self.nextframe = "inactive_competitons"
+            elif self.frames["control"].next_step == "browse database":
+                self.nextframe = "database_browser"
 
         elif self.nextframe == "competition":
             if self.frames["competition"].parseInput():
@@ -179,36 +182,6 @@ class ControlFrame(ttk.Frame):
         self.competitions_frame.competition_listbox.configure(state="normal")
         self.nextframe = "control"
         self.change_frame()
-
-    # def load_users(self):
-    #    userconfigpath = "./schuetzen.ini"
-    #    userjsonpath = "./users.json"
-    #    if os.path.exists(userjsonpath):  # case start with existing user.json
-    #        with open(userjsonpath, "r") as json_file:
-    #            self.userlist = UserList.from_json(json_file.read())
-    #
-    #    elif os.path.exists(userconfigpath):  # legacy mode
-    #        userconfig = configparser.ConfigParser()
-    #        userconfig.read(userconfigpath)
-    #        self.userlist = UserList()
-    #        for section in userconfig.sections():
-    #            if not (section == "Neu" or section == "NeuerSchütze"):
-    #                shooter = Shooter(
-    #                    name=userconfig.get(section, "Name"),
-    #                    club=userconfig.get(section, "Verein"),
-    #                    team=None,
-    #                )
-    #                settings = UserSettings(
-    #                    niceness=userconfig.getint(section, "niceness", fallback=0),
-    #                    extended_analysis=userconfig.getboolean(
-    #                        section, "erweitert", fallback=False
-    #                    ),
-    #                )
-    #                self.userlist.add_user(User(shooter=shooter, settings=settings))
-    #        self.userlist.save()
-    #        os.remove(userconfigpath)
-    #    else:  # first start
-    #        self.userlist = UserList()
 
     def reset(self):
         self.user = None

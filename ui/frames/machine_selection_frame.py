@@ -6,7 +6,7 @@ from machines.machine import MachineSettings
 from .default_frame import DefaultFrame
 
 
-class MaschineSelectionFrame(DefaultFrame):
+class MachineSelectionFrame(DefaultFrame):
     def __init__(self, container, parent):
         super().__init__(container, parent)
 

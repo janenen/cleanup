@@ -24,6 +24,17 @@ class CompetitionControlFrame(DefaultFrame):
         self.add_competition_button.grid(row=0, column=1, sticky="e")
         Hovertip(self.add_competition_button, "Fügt einen neuen Wettbewerb hinzu")
 
+        self.load_competition_button = ttk.Button(
+            self.general_competition_labelframe,
+            text="Wettbewerb laden",
+            command=self.show_old_competitions,
+        )
+        self.load_competition_button.grid(row=1, column=1, sticky="e")
+        Hovertip(
+            self.load_competition_button,
+            "Lädt einen gespeicherten Wettbewerb",
+        )
+
         self.general_competition_labelframe.grid(row=0, column=0, sticky="ew")
 
         # Aktueller Wettkampf
@@ -57,7 +68,7 @@ class CompetitionControlFrame(DefaultFrame):
         )
         self.show_entries_button = ttk.Button(
             self.current_competition_labelframe,
-            text="Teilnehmer anzeigen",
+            text="Beiträge anzeigen",
             command=self.show_entries,
         )
         self.show_entries_button.grid(row=1, column=2, sticky="e")
@@ -88,15 +99,16 @@ class CompetitionControlFrame(DefaultFrame):
             self.quick_analysis_button,
             "Schnellauswertung\n Das Ergebnis wird keinem Wettbewerb hinzugefügt",
         )
-        self.load_competition_button = ttk.Button(
+
+        self.browse_database_button = ttk.Button(
             self.general_labelframe,
-            text="Wettbewerb laden",
-            command=self.show_old_competitions,
+            text="Datenbank durchsuchen",
+            command=self.browse_database,
         )
-        self.load_competition_button.grid(row=1, column=1, sticky="e")
+        self.browse_database_button.grid(row=1, column=1, sticky="e")
         Hovertip(
-            self.load_competition_button,
-            "Lädt einen gespeicherten Wettbewerb",
+            self.browse_database_button,
+            "Datenbank durchsuchen",
         )
         self.quit_button = ttk.Button(
             self.general_labelframe, text="Programm beenden", command=self.quit
@@ -113,6 +125,10 @@ class CompetitionControlFrame(DefaultFrame):
 
     def show_old_competitions(self):
         self.next_step = "show old competitions"
+        self.proceed()
+
+    def browse_database(self):
+        self.next_step = "browse database"
         self.proceed()
 
     def add_competition(self):
