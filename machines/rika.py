@@ -31,6 +31,8 @@ class RikaReadingThread(ReadingThread):
         self.result = []
         with self.machine.connection as conn:
             while len(self.result) < self.machine.settings.count:
+                if self.shutdown:
+                    break
                 conn.write(SYN)
                 ans = conn.read(1)
                 if ans == SOH:
