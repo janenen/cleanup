@@ -42,9 +42,9 @@ class QRReadingThread(ReadingThread):
             self.result.append(
                 Shot(
                     ringe=float(unmap_ring(shot["ring"]) + shot["tenth"]),
-                    teiler=int(shot["teiler"]),
-                    x=int(shot["x"]),
-                    y=int(shot["y"]),
+                    teiler=float(shot["teiler"]),
+                    x=float(shot["x"]),
+                    y=float(shot["y"]),
                 )
             )
             self._messages.append(self.result[-1])

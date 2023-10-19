@@ -110,9 +110,9 @@ class OutputFrame(DefaultFrame):
             csvfile.write(
                 "{};{};{};{}\r".format(
                     str(s.ringe).replace(".", ","),
-                    str(s.teiler / 10).replace(".", ","),
-                    str(s.x / 100).replace(".", ","),
-                    str(s.y / 100).replace(".", ","),
+                    str(s.teiler).replace(".", ","),
+                    str(s.x).replace(".", ","),
+                    str(s.y).replace(".", ","),
                 )
             )
         csvfile.close()
@@ -153,7 +153,7 @@ class OutputFrame(DefaultFrame):
         )
         grid_limit = (
             max(dataframe["x"].abs().max(), dataframe["y"].abs().max())
-            + RADIUS_DICT[self.current_match.type_of_target][4]
+            + RADIUS_DICT[self.current_match.type_of_target][4] / 100
         )
         p = sns.JointGrid(
             dataframe,
@@ -260,10 +260,10 @@ class OutputFrame(DefaultFrame):
             )
 
         pdf.set_font("Helvetica", "B", 10)
-        pdf.text(35, 70, "{:.1f}".format(self.current_match.best.teiler / 10))
+        pdf.text(35, 70, "{:.1f}".format(self.current_match.best.teiler))
         pdf.set_font("Helvetica", "", 10)
-        pdf.text(75, 50, "{:.1f}".format(self.current_match.ablageRL / 100))
-        pdf.text(75, 55, "{:.1f}".format(self.current_match.ablageHT / 100))
+        pdf.text(75, 50, "{:.1f}".format(self.current_match.ablageRL))
+        pdf.text(75, 55, "{:.1f}".format(self.current_match.ablageHT))
 
     def __write_series(self, pdf, directory):
         abstSerie = 35
@@ -424,22 +424,18 @@ class OutputFrame(DefaultFrame):
                 35,
                 abstSerie * i + start_y + 5 + 20,
                 "{:.1f}".format(
-                    self.current_match.series[i + series_offset].best.teiler / 10
+                    self.current_match.series[i + series_offset].best.teiler
                 ),
             )
             pdf.text(
                 70,
                 abstSerie * i + start_y + 5 + 15,
-                "{:.1f}".format(
-                    self.current_match.series[i + series_offset].ablageRL / 100
-                ),
+                "{:.1f}".format(self.current_match.series[i + series_offset].ablageRL),
             )
             pdf.text(
                 70,
                 abstSerie * i + start_y + 5 + 20,
-                "{:.1f}".format(
-                    self.current_match.series[i + series_offset].ablageHT / 100
-                ),
+                "{:.1f}".format(self.current_match.series[i + series_offset].ablageHT),
             )
 
     def _draw_qr(self):
@@ -508,7 +504,7 @@ class PDFgen:
         filled = -1
         image = PDFgen.drawTarget(scheibentyp)
         for shot in series:
-            coord = (int(w / 2) + shot.x, int(w / 2) - shot.y)
+            coord = (int(w / 2 + shot.x * 100), int(w / 2 - shot.y * 100))
             cv2.circle(
                 image,
                 coord,
@@ -519,16 +515,15 @@ class PDFgen:
             )
             cv2.circle(image, coord, radiusCalibre, black, 8)
 
-        coord = (int(w / 2) + series.best.x, int(w / 2) - series.best.y)
+        coord = (int(w / 2 + series.best.x * 100), int(w / 2 - series.best.y * 100))
         cv2.circle(image, coord, radiusCalibre, red, filled)
-        coord = (int(w / 2) + series.best.x, int(w / 2) - series.best.y)
         cv2.circle(image, coord, radiusCalibre, black, 10)
-        coord = (int(w / 2 + series.ablageRL), int(w / 2 - series.ablageHT))
+        coord = (int(w / 2 + series.ablageRL * 100), int(w / 2 - series.ablageHT * 100))
         cv2.circle(image, coord, int(radiusCalibre / 3), blue, filled)
         cv2.circle(image, coord, int(radiusCalibre / 3), black, 10)
 
-        max_x = max([abs(s.x) for s in series])
-        max_y = max([abs(s.y) for s in series])
+        max_x = max([abs(s.x * 100) for s in series])
+        max_y = max([abs(s.y * 100) for s in series])
         radius_worst = int((max_x**2 + max_y**2) ** 0.5 + 0.5) + radiusCalibre
         rangemin = max(int(image.shape[0] / 2) - radius_worst, 0)
         rangemax = min(int(image.shape[0] / 2) + radius_worst, int(image.shape[0]))
