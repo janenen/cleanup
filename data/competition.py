@@ -32,10 +32,14 @@ class Competition:
             self.entries.append(match.id)
 
 
+COMPETITION_DB_VERSION = None
+
+
 @dataclass_json
 @dataclass
 class CompetitionDB:
     competitions: dict[str, Competition] = field(default_factory=dict)
+    version = None
 
     def save(self, file="./db/competitions.json"):
         with open(file, "w") as json_file:
@@ -47,10 +51,14 @@ class CompetitionDB:
         try:
             with open(file, "r") as json_file:
                 db = CompetitionDB.from_json(json_file.read())
+                if not db.version == COMPETITION_DB_VERSION:
+                    if db.version == None:
+                        # provide upgrade from version n-1
+                        pass
         except Exception as e:
             print(e)
             print("Matches file not existing")
-            db = CompetitionDB()
+            db = CompetitionDB(version=COMPETITION_DB_VERSION)
             db.save(file)
         return db
 
