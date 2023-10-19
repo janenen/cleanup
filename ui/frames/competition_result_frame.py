@@ -65,15 +65,22 @@ class CompetitionResultFrame(DefaultFrame):
         pdf.set_font("Helvetica", "", 10)
 
         # create a temporary directory
-        with tempfile.TemporaryDirectory() as directory:
-            for n, entry in enumerate(self.get_sorted_results()):
-                pdf.text(10, 30 + n * 5, str(n + 1) + ".")
-                pdf.text(15, 30 + n * 5, entry.shooter.name)
+        # with tempfile.TemporaryDirectory() as directory:
+        for n, entry in enumerate(self.get_sorted_results()):
+            pdf.text(10, 30 + n * 5, str(n + 1) + ".")
+            pdf.text(15, 30 + n * 5, entry.shooter.name)
+            if self.competition.modus in ["Bestes Ergebnis", "Bestes Ergebnis Zehntel"]:
                 for j, series in enumerate(entry.series):
-                    pdf.text((190 - 120) + j * 10, 30 + n * 5, f"{series.summe_ganz}")
-                pdf.text(
-                    190, 30 + n * 5, str(entry.get_result(self.competition.decimal))
-                )
+                    pdf.text(
+                        (190 - 120) + j * 10,
+                        30 + n * 5,
+                        f"{series.summe if self.competition.decimal else series.summe_ganz}",
+                    )
+            pdf.text(
+                190,
+                30 + n * 5,
+                str(SORTING_FUNCTION[self.competition.modus]["key"](entry)),
+            )
         newpath = os.path.join(outdir, "output", "competitions", filepath)
         if not os.path.exists(newpath):
             os.makedirs(newpath)
@@ -100,7 +107,8 @@ class CompetitionResultFrame(DefaultFrame):
             name_label.grid(row=n, column=1)
             self.label_list.append(name_label)
             result_label = ttk.Label(
-                self, text=f"{entry.get_result(self.competition.decimal)}"
+                self,
+                text=f"{str(SORTING_FUNCTION[self.competition.modus]['key'](entry))}",
             )
             result_label.grid(row=n, column=2)
             self.label_list.append(result_label)

@@ -79,7 +79,8 @@ class Match:
     @property
     def series(self):
         return [
-            Series(self.shots[n * 10 : n * 10 + 10]) for n in range(self.anzahl // 10)
+            Series(self.shots[n * 10 : n * 10 + 10])
+            for n in range(0, (self.anzahl - 1) // 10 + 1)
         ]
 
     def get_x_list(self):
