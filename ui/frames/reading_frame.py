@@ -40,12 +40,13 @@ class ReadingFrame(DefaultFrame):
         if config_success:
             self.statusbox.insert("end", "Scheiben eingeben!")
             self.container.update()
-            reader: ReadingThread = machine.get_reading_thread()
-            reader.start()
+            self.reader: ReadingThread = machine.get_reading_thread()
+            self.reader.start()
             first = True
-            while not reader.is_finished():
-                shot, self.type_of_target = reader.get_reading()
+            while not self.reader.is_finished():
+                shot, self.type_of_target = self.reader.get_reading()
                 if shot == None:
+                    self.container.update()
                     time.sleep(0.5)
                 else:
                     if first:
@@ -53,6 +54,8 @@ class ReadingFrame(DefaultFrame):
                         self.redraw_target()
                     self.draw_shot(shot)
                     self.container.update()
+            if self.reader.shutdown:
+                return
             self.statusbox.insert("end", "Einlesen abgeschlossen")
             self.container.update()
 
@@ -60,7 +63,7 @@ class ReadingFrame(DefaultFrame):
                 date=datetime.date.today().strftime("%d.%m.%Y"),
                 shooter=self.user.shooter,
                 type_of_target=self.type_of_target,
-                shots=reader.get_result(),
+                shots=self.reader.get_result(),
                 club=self.club.id if self.club else "",
                 team=self.team.id if self.team else "",
             )

@@ -174,6 +174,8 @@ class ControlFrame(ttk.Frame):
         self.change_frame()
 
     def actionBack(self):
+        if self.nextframe == "reading":
+            self.frame.reader.shutdown = True
         self.competitions_frame.competition_listbox.configure(state="normal")
         self.nextframe = "control"
         self.change_frame()
