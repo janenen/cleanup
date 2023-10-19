@@ -1,11 +1,6 @@
-# import json
-# import os
-# from tkinter import filedialog
 from tkinter import ttk
 from tkinter import messagebox
 from idlelib.tooltip import Hovertip
-
-# from data.competition import Competition
 from .default_frame import DefaultFrame
 from ..windows.visualisation_window import Visualisation
 
