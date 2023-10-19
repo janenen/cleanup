@@ -171,7 +171,6 @@ class UserResultFrame(DefaultFrame):
             self.serieslabel.config(text=f"Serie {self.i}")
             self.resultlabelframe.config(text=f"Serie {self.i}")
         elif self.i == 0:
-            # self.i = len(self.current_match.shots)/10
             self.actuallist = Series(self.current_match.shots)
             self.serieslabel.config(text="Gesammt")
             self.resultlabelframe.config(text="Gesammtergebnis")

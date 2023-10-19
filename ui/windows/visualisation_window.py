@@ -17,7 +17,7 @@ class Visualisation(Toplevel):
         super().__init__(master=master)
         self.parent = master
         self.title("Visualisierung")
-        self.geometry("800x800")
+        self.geometry("1130x800")
         self.iconbitmap(os.path.join("ui", "logo.ico"))
         self.competition_frames: dict[str, CompetitionVisualisationFrame] = {}
         self.keep_updating = True
@@ -51,11 +51,8 @@ class CompetitionVisualisationFrame(Frame):
         super().__init__(container)
         self.container: Visualisation = container
         self.competition: Competition = competition
-        self.width = self.container.winfo_width() - 20
-        self.height = self.container.winfo_height() - 50
-        self.size = min(
-            self.height / 2, self.width / (len(competition.entries) // 2 + 1)
-        )
+        self.size = 0
+
         self.match_frames: dict[str, ResultVisualisationFrame] = {}
         label = Label(self, text=competition.name)
         label.grid(column=0, row=0)
@@ -63,12 +60,23 @@ class CompetitionVisualisationFrame(Frame):
         self.grid(row=0, column=0, sticky="nesw")
 
     def update(self):
+        width = self.container.winfo_width() - 20
+        height = self.container.winfo_height() - 60
+        size = min(height / 2, width / (len(self.competition.entries) // 2 + 1))
+        if not size == self.size:
+            self.size = size
+            for frame in self.match_frames.items():
+                frame[1].destroy()
+            self.match_frames.clear()
+            # self.grid_forget()
+            # self.grid(row=0,column=0,sticky="nesw")
         for match_id in self.competition.entries:
             if not match_id in self.match_frames.keys():
                 self.match_frames[match_id] = ResultVisualisationFrame(
                     self, self.container.parent.matches[match_id]
                 )
         for i, frame in enumerate(self.match_frames.items()):
+            # frame[1].grid_forget()
             frame[1].grid(row=i % 2 + 1, column=i // 2, sticky="nesw")
 
 
@@ -132,3 +140,11 @@ class ResultVisualisationFrame(Frame):
                 tag="shot",
                 activefill="cyan",
             )
+        # make optional or in steps of ring sizes?
+        shotbox = self.canvas.bbox("shot")
+        allbox = self.canvas.bbox("all")
+        size = (allbox[2] + 1) - (allbox[0] - 1)
+        rect = [shotbox[i] - size // 2 for i in range(len(shotbox))]
+        r = max(abs(min(rect)), max(rect))
+        scale = (size / 2) / r
+        self.canvas.scale("all", size // 2, size // 2, scale, scale)
