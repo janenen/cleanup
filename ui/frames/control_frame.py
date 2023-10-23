@@ -92,7 +92,7 @@ class ControlFrame(ttk.Frame):
             elif self.frames["control"].next_step == "finish competition":
                 self.nextframe = "competition_result"
             elif self.frames["control"].next_step == "add entry":
-                self.nextframe = "machine"
+                self.nextframe = "user"
                 self.add_to_current_competition = True
             elif self.frames["control"].next_step == "quick analysis":
                 self.add_to_current_competition = False
@@ -106,10 +106,13 @@ class ControlFrame(ttk.Frame):
 
         elif self.nextframe == "competition":
             if self.frames["competition"].parseInput():
-                self.nextframe = "machine"
+                if self.add_to_current_competition:
+                    self.nextframe = "control"
+                else:
+                    self.nextframe="user"
 
         elif self.nextframe == "machine":
-            self.nextframe = "user"
+            self.nextframe = "reading"
 
         elif self.nextframe == "user":
             if self.frames["user"].edit_user():
@@ -121,7 +124,7 @@ class ControlFrame(ttk.Frame):
             elif self.frames["user"].club_to_select():
                 self.nextframe = "select_club"
             else:
-                self.nextframe = "reading"
+                self.nextframe = "machine"
 
         elif self.nextframe == "user_settings":
             if self.frames["user_settings"].parseInput():
@@ -181,36 +184,6 @@ class ControlFrame(ttk.Frame):
         self.competitions_frame.competition_listbox.configure(state="normal")
         self.nextframe = "control"
         self.change_frame()
-
-    # def load_users(self):
-    #    userconfigpath = "./schuetzen.ini"
-    #    userjsonpath = "./users.json"
-    #    if os.path.exists(userjsonpath):  # case start with existing user.json
-    #        with open(userjsonpath, "r") as json_file:
-    #            self.userlist = UserList.from_json(json_file.read())
-    #
-    #    elif os.path.exists(userconfigpath):  # legacy mode
-    #        userconfig = configparser.ConfigParser()
-    #        userconfig.read(userconfigpath)
-    #        self.userlist = UserList()
-    #        for section in userconfig.sections():
-    #            if not (section == "Neu" or section == "NeuerSchütze"):
-    #                shooter = Shooter(
-    #                    name=userconfig.get(section, "Name"),
-    #                    club=userconfig.get(section, "Verein"),
-    #                    team=None,
-    #                )
-    #                settings = UserSettings(
-    #                    niceness=userconfig.getint(section, "niceness", fallback=0),
-    #                    extended_analysis=userconfig.getboolean(
-    #                        section, "erweitert", fallback=False
-    #                    ),
-    #                )
-    #                self.userlist.add_user(User(shooter=shooter, settings=settings))
-    #        self.userlist.save()
-    #        os.remove(userconfigpath)
-    #    else:  # first start
-    #        self.userlist = UserList()
 
     def reset(self):
         self.user = None
