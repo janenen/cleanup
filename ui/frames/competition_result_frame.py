@@ -35,15 +35,14 @@ class CompetitionResultFrame(DefaultFrame):
             self.actionXLS()
         else:
             self.actionPDF()
+        self.remove_current_competition()
 
     def actionXLS(self):
         self._makeLeagueXLS()
-        self.remove_current_competition()
         self.generate_button["state"] = "disabled"
 
     def actionPDF(self):
         self._makeCompetionPDF()
-        self.remove_current_competition()
         self.generate_button["state"] = "disabled"
 
     def remove_current_competition(self):
@@ -51,6 +50,13 @@ class CompetitionResultFrame(DefaultFrame):
         self.competitions.save()
         self.active_competitions.remove(self.competition)
         self.competition = None
+
+    def discard_current_competition(self):
+        self.competitions.remove(self.competition.id)
+        if self.competition.league:
+            self.leagues.remove(self.competition.league)
+            self.leagues.save()
+        self.remove_current_competition()
 
     def get_sorted_results(self) -> list[Match]:
         return sorted(
@@ -181,6 +187,9 @@ class CompetitionResultFrame(DefaultFrame):
             os.startfile(os.path.join(newpath, testfilename))
 
     def reset(self):
+        if not self.competition.entries:
+            self.discard_current_competition()
+            return self.proceed()
         self.generate_button["state"] = "normal"
         self.activate_ok_button()
         for label in self.label_list:

@@ -57,6 +57,9 @@ class LeagueDB:
             self.leagues[id] = league
         return league.id
 
+    def remove(self, key):
+        del self.leagues[key]
+
     def __getitem__(self, key):
         return self.leagues[key]
 

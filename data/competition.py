@@ -86,6 +86,9 @@ class CompetitionDB:
                 returnlist.append(comp[1])
         return returnlist
 
+    def remove(self, key):
+        del self.competitions[key]
+
     def __getitem__(self, key):
         return self.competitions[key]
 
