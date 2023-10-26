@@ -20,6 +20,10 @@ class Competitions(DefaultFrame):
             return
         if self.showing == "competitions":
             self.competition = self.active_competitions[n]
+            if self.competition.league:
+                self.league = self.leagues[self.competition.league]
+            else:
+                self.league = None
             if self.competition.entries:
                 self.current_match = self.matches[self.competition.entries[-1]]
         elif self.showing == "entries":

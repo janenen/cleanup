@@ -652,7 +652,7 @@ class PDFgen:
         t = 2
         r = int(w / 2 - 2 * t)
         is_inner_ten = (
-            int((x**2 + y**2) ** 0.5 - radiusCalibre + 0.5) < radiusInnerTen
+            ((x**2 + y**2) ** 0.5 - radiusCalibre/100) < radiusInnerTen/100
         )
         alpha = math.atan2(y, x)
         center_coordinates = (int(w / 2), int(w / 2))

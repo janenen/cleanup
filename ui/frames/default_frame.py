@@ -1,6 +1,7 @@
 from tkinter import ttk
 from data.club import Club, ClubDB
 from data.competition import Competition, CompetitionDB
+from data.league import LeagueDB, RSBLeague
 from data.match import Match, MatchDB
 from data.team import Team, TeamDB
 from data.user import User, UserDB
@@ -48,6 +49,18 @@ class DefaultFrame(ttk.Frame):
     @competition.setter
     def competition(self, value: Competition):
         self.parent.competition = value
+
+    @property
+    def leagues(self) -> LeagueDB:
+        return self.parent.leagues
+
+    @property
+    def league(self) -> RSBLeague:
+        return self.parent.league
+
+    @league.setter
+    def league(self, value: RSBLeague):
+        self.parent.league = value
 
     @property
     def users(self) -> UserDB:

@@ -12,48 +12,65 @@ class SelectUserFrame(DefaultFrame):
         self.scrollbar = tk.Scrollbar(self)
         self.userlistbox = tk.Listbox(self, height=10, width=50)
 
-        def onselect(event):
-            self.select()
-
-        self.userlistbox.bind("<<ListboxSelect>>", onselect)
+        self.userlistbox.bind("<<ListboxSelect>>", self.select)
         self.userlistbox.config(yscrollcommand=self.scrollbar.set)
         self.scrollbar.config(command=self.userlistbox.yview)
-        self.scrollbar.grid(column=4, row=0, sticky="wens")
-        self.userlistbox.grid(columnspan=4, column=0, row=0, sticky="ew")
+        self.scrollbar.grid(column=5, row=0, sticky="wens")
+        self.userlistbox.grid(columnspan=5, column=0, row=0, sticky="ew")
 
-        ttk.Label(self, text="Name: ").grid(column=0, row=1, sticky="nesw", **options)
+        self.home_guest = tk.StringVar()
+        self.home = ttk.Radiobutton(
+            self,
+            text="Heim",
+            value="home",
+            variable=self.home_guest,
+            command=self.select,
+        )
+        self.home.grid(column=0, row=1, sticky="w", **options)
+        self.home["state"] = "disabled"
+        self.guest = ttk.Radiobutton(
+            self,
+            text="Gast",
+            value="guest",
+            variable=self.home_guest,
+            command=self.select,
+        )
+        self.guest.grid(column=0, row=2, sticky="w", **options)
+        self.guest["state"] = "disabled"
+
+        ttk.Label(self, text="Name: ").grid(column=1, row=1, sticky="nesw", **options)
         self.name_label = ttk.Label(self, text="")
-        self.name_label.grid(column=1, row=1, sticky="w", **options)
+        self.name_label.grid(column=2, row=1, sticky="w", **options)
 
-        ttk.Label(self, text="Verein: ").grid(column=0, row=2, sticky="nesw", **options)
+        ttk.Label(self, text="Verein: ").grid(column=1, row=2, sticky="nesw", **options)
         self.club_label = ttk.Label(self, text="")
-        self.club_label.grid(column=1, row=2, sticky="nesw", **options)
+        self.club_label.grid(column=2, row=2, sticky="nesw", **options)
         self.club_button = ttk.Button(self, text="Auswählen")
-        self.club_button.grid(column=3, row=2, sticky="w", **options)
+        self.club_button.grid(column=4, row=2, sticky="w", **options)
         Hovertip(self.club_button, "Verein auswählen")
 
         ttk.Label(self, text="Mannschaft: ").grid(
-            column=0, row=3, sticky="nesw", **options
+            column=1, row=3, sticky="nesw", **options
         )
         self.team_label = ttk.Label(self, text="")
-        self.team_label.grid(column=1, row=3, sticky="nesw", **options)
+        self.team_label.grid(column=2, row=3, sticky="nesw", **options)
         self.club_button.configure(command=self.select_club)
 
         self.team_button = ttk.Button(self, text="Auswählen")
-        self.team_button.grid(column=3, row=3, sticky="w", **options)
+        self.team_button.grid(column=4, row=3, sticky="w", **options)
         Hovertip(self.team_button, "Mannschaft auswählen")
         self.team_button.configure(command=self.select_team)
 
         self.new_button = ttk.Button(self, text="Neuer Benutzer")
-        self.new_button.grid(column=2, row=1, sticky="e", **options)
+        self.new_button.grid(column=3, row=1, sticky="e", **options)
         Hovertip(self.new_button, "Neuen Benutzer anlegen")
         self.new_button.configure(command=self.new)
 
         self.edit_button = ttk.Button(self, text="Bearbeiten")
-        self.edit_button.grid(column=3, row=1, sticky="e", **options)
+        self.edit_button.grid(column=4, row=1, sticky="e", **options)
         Hovertip(self.edit_button, "Benutzer bearbeiten")
         self.edit_button.configure(command=self.edit)
-        self.columnconfigure(1, weight=1)
+        self.columnconfigure(2, weight=1)
 
         # add padding to the frame and show it
         self.grid(column=1, row=0, padx=5, pady=5, sticky="nsew")
@@ -62,7 +79,7 @@ class SelectUserFrame(DefaultFrame):
         self.edit_shooter = False
         self.create_new_user = False
 
-    def select(self, event):
+    def select(self, event=None):
         self.edit_shooter = False
         self.create_new_user = False
         selection = self.userlistbox.curselection()
@@ -71,16 +88,26 @@ class SelectUserFrame(DefaultFrame):
             if n < len(self.users.users):
                 self.user = self.userlist[n][1]
                 self.name_label.config(text=self.user.name)
+                if self.league:
+                    if self.home_guest.get() == "home":
+                        self.club = self.clubs[self.league.home_club]
+                        self.team = self.teams[self.league.home_team]
+                    elif self.home_guest.get() == "guest":
+                        self.club = self.clubs[self.league.guest_club]
+                        self.team = self.teams[self.league.guest_team]
+                    self.club_button["state"] = "disabled"
+                    self.team_button["state"] = "disabled"
+                else:
+                    self.club_button["state"] = "normal"
+                    self.team_button["state"] = "normal"
+                self.edit_button["state"] = "normal"
                 self.club_label.config(text=self.club.name if self.club else "")
                 self.team_label.config(text=self.team.name if self.team else "")
-                self.edit_button["state"] = "normal"
-                self.club_button["state"] = "normal"
-                self.team_button["state"] = "normal"
             else:
-                pass
+                return
 
-        self.activate_back_button()
-        self.activate_ok_button()
+            self.activate_back_button()
+            self.activate_ok_button()
 
     def reset(self):
         self.name_label.config(
@@ -91,6 +118,11 @@ class SelectUserFrame(DefaultFrame):
         self.team_label.config(text=self.team.name if self.team else "-")
         self.team_button["state"] = "normal" if self.user else "disabled"
         self.userlistbox.delete("0", "end")
+        if self.league:
+            self.club_button["state"] = "disabled"
+            self.team_button["state"] = "disabled"
+            self.home["state"] = "normal"
+            self.guest["state"] = "normal"
         self.userlist = [user for user in self.users]
         for user in self.userlist:
             self.userlistbox.insert("end", user[1].name)
