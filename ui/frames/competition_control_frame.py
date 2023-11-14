@@ -162,9 +162,9 @@ class CompetitionControlFrame(DefaultFrame):
         self.parent.competitions_frame.competition_listbox.configure(state="normal")
         self.parent.competitions_frame.update_competitions()
         self.parent.reset()
-        self.finish_competition_button["state"] = "disabled"
         self.show_entries_button["state"] = "disabled"
         self.add_entry_button["state"] = "disabled"
+        self.finish_competition_button["state"] = "disabled"
         self.competition_name_label.config(text="-")
         self.competition_count_label.config(text="-")
 
@@ -179,5 +179,4 @@ class CompetitionControlFrame(DefaultFrame):
                 self.competition_count_label.config(text=len(self.competition.entries))
                 self.finish_competition_button["state"] = "normal"
                 if self.competition.entries:
-
                     self.show_entries_button["state"] = "normal"

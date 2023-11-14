@@ -88,10 +88,10 @@ class ReadingFrame(DefaultFrame):
     def draw_shot(self, shot):
         radiusCalibre = RADIUS_DICT[self.type_of_target][4]
         self.canvas.create_oval(
-            (shot.x - radiusCalibre) * self.scalefactor + self.canvsize / 2,
-            -(shot.y - radiusCalibre) * self.scalefactor + self.canvsize / 2,
-            (shot.x + radiusCalibre) * self.scalefactor + self.canvsize / 2,
-            -(shot.y + radiusCalibre) * self.scalefactor + self.canvsize / 2,
+            (shot.x * 100 - radiusCalibre) * self.scalefactor + self.canvsize / 2,
+            -(shot.y * 100 - radiusCalibre) * self.scalefactor + self.canvsize / 2,
+            (shot.x * 100 + radiusCalibre) * self.scalefactor + self.canvsize / 2,
+            -(shot.y * 100 + radiusCalibre) * self.scalefactor + self.canvsize / 2,
             # fill="orange" if a in self.match.ausreisser else "green",
             fill="green",
             tag="shot",

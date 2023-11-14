@@ -13,10 +13,14 @@ class Club:
     id: str = ""
 
 
+CLUB_DB_VERSION = None
+
+
 @dataclass_json
 @dataclass
 class ClubDB:
     clubs: Dict[str, Club] = field(default_factory=dict)
+    version = None
 
     def save(self, file="./db/clubs.json"):
         with open(file, "w") as json_file:
@@ -32,10 +36,14 @@ class ClubDB:
         try:
             with open(file, "r") as json_file:
                 db = ClubDB.from_json(json_file.read())
+                if not db.version == CLUB_DB_VERSION:
+                    if db.version == None:
+                        # provide upgrade from version n-1
+                        pass
         except Exception as e:
             print(e)
             print("Teams file not existing")
-            db = ClubDB()
+            db = ClubDB(version=CLUB_DB_VERSION)
             db.save(file)
         return db
 

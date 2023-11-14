@@ -79,7 +79,8 @@ class Match:
     @property
     def series(self):
         return [
-            Series(self.shots[n * 10 : n * 10 + 10]) for n in range(self.anzahl // 10)
+            Series(self.shots[n * 10 : n * 10 + 10])
+            for n in range(0, (self.anzahl - 1) // 10 + 1)
         ]
 
     def get_x_list(self):
@@ -120,26 +121,46 @@ class Match:
             yield shot
 
 
+MATCH_DB_VERSION = 1
+
+
 @dataclass_json
 @dataclass
 class MatchDB:
     matches: dict[str, Match] = field(default_factory=dict)
+    version: int = None
 
     def save(self, file="./db/matches.json"):
         with open(file, "w") as json_file:
             json_file.write(json.dumps(json.loads(self.to_json()), indent=2))
 
-    def load(file="./db/matches.json"):
-        if not os.path.exists(os.path.dirname(file)):
-            os.mkdir(os.path.dirname(file))
+    def load(filepath="./db/matches.json"):
+        if not os.path.exists(os.path.dirname(filepath)):
+            os.mkdir(os.path.dirname(filepath))
         try:
-            with open(file, "r") as json_file:
+            with open(filepath, "r") as json_file:
                 db = MatchDB.from_json(json_file.read())
+            if not db.version == MATCH_DB_VERSION:
+                if db.version == None:
+                    matches = None
+                    with open(filepath) as file:
+                        matches = json.load(file)
+                        for key in matches["matches"].keys():
+                            for shot in matches["matches"][key]["shots"]:
+                                if type(shot["teiler"]) == int:
+                                    shot["teiler"] = shot["teiler"] / 10
+                                    shot["x"] = shot["x"] / 100
+                                    shot["y"] = shot["y"] / 100
+                        matches["version"] = 1
+                    with open(filepath, "w") as file:
+                        json.dump(matches, file, indent=2)
+                    return MatchDB.load(filepath)
+                # elif provide upgrade from version n-1
         except Exception as e:
             print(e)
             print("Matches file not existing")
-            db = MatchDB()
-            db.save(file)
+            db = MatchDB(version=MATCH_DB_VERSION)
+            db.save(filepath)
         return db
 
     def add_match(self, match: Match) -> str:

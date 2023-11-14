@@ -43,9 +43,9 @@ class RikaReadingThread(ReadingThread):
                     self.result.append(
                         Shot(
                             ringe=int(groupdict["value"]) / 10,
-                            teiler=int(groupdict["distance"]),
-                            x=int(groupdict["x"]),
-                            y=int(groupdict["y"]),
+                            teiler=int(groupdict["distance"]) / 10,
+                            x=int(groupdict["x"]) / 100,
+                            y=int(groupdict["y"]) / 100,
                         )
                     )
                     self._messages.append(self.result[-1])
