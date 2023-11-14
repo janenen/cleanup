@@ -204,10 +204,10 @@ class UserResultFrame(DefaultFrame):
         scalefactor = self.canvsize / w
         for shot in self.actuallist:
             id = self.canvas.create_oval(
-                (shot.x - radiusCalibre) * scalefactor + self.canvsize / 2,
-                -(shot.y - radiusCalibre) * scalefactor + self.canvsize / 2,
-                (shot.x + radiusCalibre) * scalefactor + self.canvsize / 2,
-                -(shot.y + radiusCalibre) * scalefactor + self.canvsize / 2,
+                (shot.x * 100 - radiusCalibre) * scalefactor + self.canvsize / 2,
+                -(shot.y * 100 - radiusCalibre) * scalefactor + self.canvsize / 2,
+                (shot.x * 100 + radiusCalibre) * scalefactor + self.canvsize / 2,
+                -(shot.y * 100 + radiusCalibre) * scalefactor + self.canvsize / 2,
                 # fill="orange" if a in self.current_match.ausreisser else "green",
                 fill="green",
                 tag="shot",
@@ -225,11 +225,11 @@ class UserResultFrame(DefaultFrame):
                 else f"{self.shotcircles[id].ringe_ganz}"
             )
         )
-        self.xlabel.config(text="{:.2f}".format(self.shotcircles[id].x / 100))
+        self.xlabel.config(text="{:.2f}".format(self.shotcircles[id].x))
 
-        self.ylabel.config(text="{:.2f}".format(self.shotcircles[id].y / 100))
+        self.ylabel.config(text="{:.2f}".format(self.shotcircles[id].y))
 
-        self.teilerlabel.config(text="{:.1f}".format(self.shotcircles[id].teiler / 10))
+        self.teilerlabel.config(text="{:.1f}".format(self.shotcircles[id].teiler))
 
     def redraw_target(self):
         self.canvas.delete("ring")
@@ -276,8 +276,8 @@ class UserResultFrame(DefaultFrame):
                 )
             )
         )
-        self.devxlabel.config(text="{:.1f}".format(self.actuallist.ablageRL / 100))
-        self.devylabel.config(text="{:.1f}".format(self.actuallist.ablageHT / 100))
+        self.devxlabel.config(text="{:.1f}".format(self.actuallist.ablageRL))
+        self.devylabel.config(text="{:.1f}".format(self.actuallist.ablageHT))
         for label in self.shotlabellist:
             label.destroy()
         self.shotlabellist = []

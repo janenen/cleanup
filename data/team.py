@@ -13,10 +13,14 @@ class Team:
     id: str = ""
 
 
+TEAM_DB_VERSION = None
+
+
 @dataclass_json
 @dataclass
 class TeamDB:
     teams: Dict[str, Team] = field(default_factory=dict)
+    version = None
 
     def save(self, file="./db/teams.json"):
         with open(file, "w") as json_file:
@@ -32,10 +36,14 @@ class TeamDB:
         try:
             with open(file, "r") as json_file:
                 db = TeamDB.from_json(json_file.read())
+                if not db.version == TEAM_DB_VERSION:
+                    if db.version == None:
+                        # provide upgrade from version n-1
+                        pass
         except Exception as e:
             print(e)
             print("Teams file not existing")
-            db = TeamDB()
+            db = TeamDB(version=TEAM_DB_VERSION)
             db.save(file)
         return db
 

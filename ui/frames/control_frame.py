@@ -5,6 +5,7 @@ import tkinter as tk
 from tkinter import ttk
 from data.club import Club, ClubDB
 from data.competition import Competition, CompetitionDB
+from data.league import LeagueDB, RSBLeague
 from data.match import Match, MatchDB
 
 # from data.shooter import Shooter
@@ -26,6 +27,7 @@ from .competition_settings_frame import CompetitionSettingsFrame
 from .competition_result_frame import CompetitionResultFrame
 from .competitions_frame import Competitions
 from .competition_control_frame import CompetitionControlFrame
+from .rsb_league_frame import RSBLeagueFrame
 
 
 class ControlFrame(ttk.Frame):
@@ -41,12 +43,15 @@ class ControlFrame(ttk.Frame):
     source: Machine
     teams: TeamDB
     team: Team = None
+    leagues: LeagueDB = None
+    league: RSBLeague = None
 
     def __init__(self, container):
         super().__init__(container)
         self.container = container
         self.nextframe = "control"
         self.add_to_current_competition = True
+        self.configure_leauge = False
         #  buttons
         self.back_button = ttk.Button(self, text="Zurück", command=self.actionBack)
         self.back_button.grid(column=1, row=0, padx=5, pady=5)
@@ -61,6 +66,7 @@ class ControlFrame(ttk.Frame):
         self.teams = TeamDB.load()
         self.matches = MatchDB.load()
         self.competitions = CompetitionDB.load()
+        self.leagues = LeagueDB.load()
         self.active_competitions = self.competitions.get_active_competitions()
 
         # initialize frames
@@ -79,6 +85,7 @@ class ControlFrame(ttk.Frame):
             "club_settings": ClubSettingsFrame(container, self),
             "output": OutputFrame(container, self),
             "inactive_competitons": ShowInactiveCompetitions(container, self),
+            "rsb_league": RSBLeagueFrame(container, self),
         }
         self.change_frame()
 
@@ -92,7 +99,7 @@ class ControlFrame(ttk.Frame):
             elif self.frames["control"].next_step == "finish competition":
                 self.nextframe = "competition_result"
             elif self.frames["control"].next_step == "add entry":
-                self.nextframe = "machine"
+                self.nextframe = "user"
                 self.add_to_current_competition = True
             elif self.frames["control"].next_step == "quick analysis":
                 self.add_to_current_competition = False
@@ -106,10 +113,33 @@ class ControlFrame(ttk.Frame):
 
         elif self.nextframe == "competition":
             if self.frames["competition"].parseInput():
-                self.nextframe = "machine"
+                if not self.add_to_current_competition:
+                    self.nextframe = "user"
+
+                else:
+                    if (
+                        self.competition.modus
+                        == "Liga des RSB (Kreis/Bezirk/Landesliga)"
+                    ):
+                        self.configure_leauge = True
+                        self.nextframe = "rsb_league"
+                    else:
+                        self.nextframe = "control"
+
+        elif self.nextframe == "rsb_league":
+            if self.frames["rsb_league"].home_club_to_select():
+                self.nextframe = "select_club"
+            elif self.frames["rsb_league"].home_team_to_select():
+                self.nextframe = "select_team"
+            elif self.frames["rsb_league"].guest_club_to_select():
+                self.nextframe = "select_club"
+            elif self.frames["rsb_league"].guest_team_to_select():
+                self.nextframe = "select_team"
+            elif self.frames["rsb_league"].parseInput():
+                self.nextframe = "control"
 
         elif self.nextframe == "machine":
-            self.nextframe = "user"
+            self.nextframe = "reading"
 
         elif self.nextframe == "user":
             if self.frames["user"].edit_user():
@@ -121,23 +151,11 @@ class ControlFrame(ttk.Frame):
             elif self.frames["user"].club_to_select():
                 self.nextframe = "select_club"
             else:
-                self.nextframe = "reading"
+                self.nextframe = "machine"
 
         elif self.nextframe == "user_settings":
             if self.frames["user_settings"].parseInput():
                 self.frames["user"].create_new_user = False
-                self.nextframe = "user"
-
-        elif self.nextframe == "select_team":
-            if self.frames["select_team"].edit_team():
-                self.nextframe = "team_settings"
-            elif self.frames["select_team"].new_team():
-                self.nextframe = "team_settings"
-            else:
-                self.nextframe = "user"
-
-        elif self.nextframe == "team_settings":
-            if self.frames["team_settings"].parseInput():
                 self.nextframe = "user"
 
         elif self.nextframe == "select_club":
@@ -146,11 +164,41 @@ class ControlFrame(ttk.Frame):
             elif self.frames["select_club"].new_club():
                 self.nextframe = "club_settings"
             else:
-                self.nextframe = "user"
+                if self.frames["rsb_league"].home_club_to_select():
+                    self.frames["rsb_league"].select_home_club_var = False
+                    self.frames["rsb_league"].club_home = self.club.id
+                    self.nextframe = "rsb_league"
+                elif self.frames["rsb_league"].guest_club_to_select():
+                    self.frames["rsb_league"].select_guest_club_var = False
+                    self.frames["rsb_league"].club_guest = self.club.id
+                    self.nextframe = "rsb_league"
+                else:
+                    self.nextframe = "user"
 
         elif self.nextframe == "club_settings":
             if self.frames["club_settings"].parseInput():
-                self.nextframe = "user"
+                self.nextframe = "select_club"
+
+        elif self.nextframe == "select_team":
+            if self.frames["select_team"].edit_team():
+                self.nextframe = "team_settings"
+            elif self.frames["select_team"].new_team():
+                self.nextframe = "team_settings"
+            else:
+                if self.frames["rsb_league"].home_team_to_select():
+                    self.frames["rsb_league"].select_home_team_var = False
+                    self.frames["rsb_league"].team_home = self.team.id
+                    self.nextframe = "rsb_league"
+                elif self.frames["rsb_league"].guest_team_to_select():
+                    self.frames["rsb_league"].select_guest_team_var = False
+                    self.frames["rsb_league"].team_guest = self.team.id
+                    self.nextframe = "rsb_league"
+                else:
+                    self.nextframe = "user"
+
+        elif self.nextframe == "team_settings":
+            if self.frames["team_settings"].parseInput():
+                self.nextframe = "select_team"
 
         elif self.nextframe == "reading":
             self.nextframe = "match_result"
@@ -169,7 +217,7 @@ class ControlFrame(ttk.Frame):
         elif self.nextframe == "competition_result":
             self.competitions_frame.competition_listbox.configure(state="normal")
             self.nextframe = "control"
-            self.frame.remove_current_competition()
+            # self.frame.remove_current_competition()
 
         elif self.nextframe == "inactive_competitons":
             self.nextframe = "control"
@@ -181,36 +229,6 @@ class ControlFrame(ttk.Frame):
         self.competitions_frame.competition_listbox.configure(state="normal")
         self.nextframe = "control"
         self.change_frame()
-
-    # def load_users(self):
-    #    userconfigpath = "./schuetzen.ini"
-    #    userjsonpath = "./users.json"
-    #    if os.path.exists(userjsonpath):  # case start with existing user.json
-    #        with open(userjsonpath, "r") as json_file:
-    #            self.userlist = UserList.from_json(json_file.read())
-    #
-    #    elif os.path.exists(userconfigpath):  # legacy mode
-    #        userconfig = configparser.ConfigParser()
-    #        userconfig.read(userconfigpath)
-    #        self.userlist = UserList()
-    #        for section in userconfig.sections():
-    #            if not (section == "Neu" or section == "NeuerSchütze"):
-    #                shooter = Shooter(
-    #                    name=userconfig.get(section, "Name"),
-    #                    club=userconfig.get(section, "Verein"),
-    #                    team=None,
-    #                )
-    #                settings = UserSettings(
-    #                    niceness=userconfig.getint(section, "niceness", fallback=0),
-    #                    extended_analysis=userconfig.getboolean(
-    #                        section, "erweitert", fallback=False
-    #                    ),
-    #                )
-    #                self.userlist.add_user(User(shooter=shooter, settings=settings))
-    #        self.userlist.save()
-    #        os.remove(userconfigpath)
-    #    else:  # first start
-    #        self.userlist = UserList()
 
     def reset(self):
         self.user = None
