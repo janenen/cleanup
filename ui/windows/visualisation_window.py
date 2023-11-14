@@ -1,8 +1,9 @@
 import os
+import sys
 from threading import Thread
 import time
-from tkinter import *
-from tkinter.ttk import *
+import tkinter as tk
+import tkinter.ttk as ttk
 from typing import TYPE_CHECKING
 
 from data.competition import Competition
@@ -12,13 +13,18 @@ if TYPE_CHECKING:
     from ui.frames.control_frame import ControlFrame
 
 
-class Visualisation(Toplevel):
+class Visualisation(tk.Toplevel):
     def __init__(self, master: "ControlFrame" = None):
         super().__init__(master=master)
         self.parent = master
         self.title("Visualisierung")
         self.geometry("1130x800")
-        self.iconbitmap(os.path.join("ui", "logo.ico"))
+        try:
+            # PyInstaller creates a temp folder and stores path in _MEIPASS
+            base_path = sys._MEIPASS
+        except Exception:
+            base_path = os.path.abspath(".")
+        self.iconbitmap(os.path.join(base_path, "ui", "logo.ico"))
         self.competition_frames: dict[str, CompetitionVisualisationFrame] = {}
         self.keep_updating = True
         Thread(target=self.update_thread_function).start()
@@ -46,7 +52,7 @@ class Visualisation(Toplevel):
                 self.keep_updating = False
 
 
-class CompetitionVisualisationFrame(Frame):
+class CompetitionVisualisationFrame(ttk.Frame):
     def __init__(self, container, competition: Competition):
         super().__init__(container)
         self.container: Visualisation = container
@@ -54,7 +60,7 @@ class CompetitionVisualisationFrame(Frame):
         self.size = 0
 
         self.match_frames: dict[str, ResultVisualisationFrame] = {}
-        label = Label(self, text=competition.name)
+        label = ttk.Label(self, text=competition.name)
         label.grid(column=0, row=0)
 
         self.grid(row=0, column=0, sticky="nesw")
@@ -68,27 +74,24 @@ class CompetitionVisualisationFrame(Frame):
             for frame in self.match_frames.items():
                 frame[1].destroy()
             self.match_frames.clear()
-            # self.grid_forget()
-            # self.grid(row=0,column=0,sticky="nesw")
         for match_id in self.competition.entries:
             if not match_id in self.match_frames.keys():
                 self.match_frames[match_id] = ResultVisualisationFrame(
                     self, self.container.parent.matches[match_id]
                 )
         for i, frame in enumerate(self.match_frames.items()):
-            # frame[1].grid_forget()
             frame[1].grid(row=i % 2 + 1, column=i // 2, sticky="nesw")
 
 
-class ResultVisualisationFrame(Frame):
+class ResultVisualisationFrame(ttk.Frame):
     def __init__(self, container, match: Match):
         self.container: CompetitionVisualisationFrame = container
         super().__init__(container)
-        label = Label(self, text=match.shooter.name)
+        label = ttk.Label(self, text=match.shooter.name)
         label.grid(column=0, row=0)
         self.match: Match = match
 
-        self.canvas = Canvas(
+        self.canvas = tk.Canvas(
             self, bg="white", height=self.container.size, width=self.container.size
         )
         self.canvas.grid(row=1, column=0)
@@ -102,7 +105,7 @@ class ResultVisualisationFrame(Frame):
         radiusBlack = RADIUS_DICT[self.match.type_of_target][3]
         w = 2 * (radiusTen + 9 * incrementRing)
         scalefactor = self.container.size / w
-        spiegel = self.canvas.create_oval(
+        self.canvas.create_oval(
             (-radiusBlack) * scalefactor + self.container.size / 2,
             radiusBlack * scalefactor + self.container.size / 2,
             radiusBlack * scalefactor + self.container.size / 2,
@@ -131,16 +134,14 @@ class ResultVisualisationFrame(Frame):
         w = 2 * (radiusTen + 9 * incrementRing)
         scalefactor = self.container.size / w
         for shot in self.match.shots:
-            id = self.canvas.create_oval(
-                (shot.x - radiusCalibre) * scalefactor + self.container.size / 2,
-                -(shot.y - radiusCalibre) * scalefactor + self.container.size / 2,
-                (shot.x + radiusCalibre) * scalefactor + self.container.size / 2,
-                -(shot.y + radiusCalibre) * scalefactor + self.container.size / 2,
+            self.canvas.create_oval(
+                (shot.x * 100 - radiusCalibre) * scalefactor + self.container.size / 2,
+                -(shot.y * 100 - radiusCalibre) * scalefactor + self.container.size / 2,
+                (shot.x * 100 + radiusCalibre) * scalefactor + self.container.size / 2,
+                -(shot.y * 100 + radiusCalibre) * scalefactor + self.container.size / 2,
                 fill="green",
                 tag="shot",
-                activefill="cyan",
             )
-        # make optional or in steps of ring sizes?
         shotbox = self.canvas.bbox("shot")
         allbox = self.canvas.bbox("all")
         size = (allbox[2] + 1) - (allbox[0] - 1)
