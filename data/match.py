@@ -128,7 +128,7 @@ MATCH_DB_VERSION = 1
 @dataclass
 class MatchDB:
     matches: dict[str, Match] = field(default_factory=dict)
-    version: int = None
+    version: int | None = None
 
     def save(self, file="./db/matches.json"):
         with open(file, "w") as json_file:

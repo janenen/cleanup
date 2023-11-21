@@ -21,29 +21,38 @@ class CompetitionResultFrame(DefaultFrame):
         options = {"padx": 5, "pady": 0}
         # user input
         self.generate_button = ttk.Button(
-            self, text="Drucken / Speichern", command=self.actionSpeichern
+            self, text="PDF erzeugen", command=self.actionPrint
         )
         Hovertip(
             self.generate_button,
-            "Ergebnis speichern\nDas Ergebnis wird gespeichert und ein druckbarer Bericht geöffnet",
+            "Erzeugt einen druckbaren Bericht",
+        )
+        self.close_button = ttk.Button(self, text="Beenden", command=self.actionClose)
+        Hovertip(
+            self.close_button,
+            "Wettbewerb beenden",
         )
         self.columnconfigure(3, weight=1)
         self.grid(column=1, row=0, padx=5, pady=5, sticky="nsew")
 
-    def actionSpeichern(self):
+    def actionPrint(self):
         if self.league:
             self.actionXLS()
         else:
             self.actionPDF()
+        # self.remove_current_competition()
+
+    def actionClose(self):
         self.remove_current_competition()
+        self.proceed()
 
     def actionXLS(self):
         self._makeLeagueXLS()
-        self.generate_button["state"] = "disabled"
+        # self.generate_button["state"] = "disabled"
 
     def actionPDF(self):
         self._makeCompetionPDF()
-        self.generate_button["state"] = "disabled"
+        # self.generate_button["state"] = "disabled"
 
     def remove_current_competition(self):
         self.competition.active = False
@@ -148,7 +157,6 @@ class CompetitionResultFrame(DefaultFrame):
         pdf = FPDF()
         pdf.add_page()
         pdf.set_font("Helvetica", "B", 16)
-        # pdf.set_font('Helvetica','',10)
         pdf.text(
             10,
             20,
@@ -156,8 +164,6 @@ class CompetitionResultFrame(DefaultFrame):
         )
         pdf.set_font("Helvetica", "", 10)
 
-        # create a temporary directory
-        # with tempfile.TemporaryDirectory() as directory:
         for n, entry in enumerate(self.get_sorted_results()):
             pdf.text(10, 30 + n * 5, str(n + 1) + ".")
             pdf.text(15, 30 + n * 5, entry.shooter.name)
@@ -212,7 +218,6 @@ class CompetitionResultFrame(DefaultFrame):
             header_guest.grid(row=0, column=4, columnspan=3)
             self.label_list.append(header_guest)
             for n, entry in enumerate([entry for entry in home_entries]):
-                # print (f"{n}: {home.shooter.name} {home.summe_ganz} : {guest.summe_ganz} {guest.shooter.name}")
                 rank_label = ttk.Label(self, text=f"{n+1}")
                 rank_label.grid(row=n + 1, column=0)
                 self.label_list.append(rank_label)
@@ -226,7 +231,6 @@ class CompetitionResultFrame(DefaultFrame):
                 result_label.grid(row=n + 1, column=2)
                 self.label_list.append(result_label)
             for m, entry in enumerate([entry for entry in guest_entries]):
-                # print (f"{n}: {home.shooter.name} {home.summe_ganz} : {guest.summe_ganz} {guest.shooter.name}")
                 result_label = ttk.Label(
                     self,
                     text=f"{entry.summe_ganz}",
@@ -256,5 +260,6 @@ class CompetitionResultFrame(DefaultFrame):
                 result_label.grid(row=n, column=2)
                 self.label_list.append(result_label)
         self.generate_button.grid(
-            row=max(n, m) + 2, column=0, columnspan=7, sticky="se"
+            row=max(n, m) + 2, column=0, columnspan=6, sticky="se"
         )
+        self.close_button.grid(row=max(n, m) + 2, column=6, sticky="se")

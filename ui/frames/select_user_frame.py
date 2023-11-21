@@ -80,60 +80,58 @@ class SelectUserFrame(DefaultFrame):
         self.create_new_user = False
 
     def select(self, event=None):
-        self.edit_shooter = False
-        self.create_new_user = False
         selection = self.userlistbox.curselection()
         if len(selection) > 0:
             n = selection[0]
             if n < len(self.users.users):
                 self.user = self.userlist[n][1]
-                self.name_label.config(text=self.user.name)
-                if self.league:
-                    if self.home_guest.get() == "home":
-                        self.club = self.clubs[self.league.home_club]
-                        self.team = self.teams[self.league.home_team]
-                    elif self.home_guest.get() == "guest":
-                        self.club = self.clubs[self.league.guest_club]
-                        self.team = self.teams[self.league.guest_team]
-                    self.club_button["state"] = "disabled"
-                    self.team_button["state"] = "disabled"
-                else:
-                    self.club_button["state"] = "normal"
-                    self.team_button["state"] = "normal"
-                self.edit_button["state"] = "normal"
-                self.club_label.config(text=self.club.name if self.club else "")
-                self.team_label.config(text=self.team.name if self.team else "")
-            else:
-                return
 
-            self.activate_back_button()
-            self.activate_ok_button()
+        self.reset()
 
     def reset(self):
+        self.edit_shooter = False
+        self.create_new_user = False
+        self.edit_button["state"] = "disabled"
+        self.home["state"] = "disabled"
+        self.guest["state"] = "disabled"
+        self.userlistbox.delete("0", "end")
+        self.userlist = [user for user in self.users]
+        for user in self.userlist:
+            self.userlistbox.insert("end", user[1].name)
+        self.userlistbox.bind("<<ListboxSelect>>", self.select)
+
         self.name_label.config(
             text=self.user.name if self.user else "Schütze auswählen"
         )
-        self.club_label.config(text=self.club.name if self.club else "-")
-        self.club_button["state"] = "normal" if self.user else "disabled"
-        self.team_label.config(text=self.team.name if self.team else "-")
-        self.team_button["state"] = "normal" if self.user else "disabled"
-        self.userlistbox.delete("0", "end")
+
         if self.league:
+            if self.home_guest.get() == "home":
+                self.club = self.clubs[self.league.home_club]
+                self.team = self.teams[self.league.home_team]
+            elif self.home_guest.get() == "guest":
+                self.club = self.clubs[self.league.guest_club]
+                self.team = self.teams[self.league.guest_team]
+
             self.club_button["state"] = "disabled"
             self.team_button["state"] = "disabled"
             self.home["state"] = "normal"
             self.guest["state"] = "normal"
-        self.userlist = [user for user in self.users]
-        for user in self.userlist:
-            self.userlistbox.insert("end", user[1].name)
-
-        self.userlistbox.bind("<<ListboxSelect>>", self.select)
-        # self.deactivate_back_button()
-        if not self.user:
-            self.deactivate_ok_button()
+        elif self.user:
+            self.club_button["state"] = "normal"
+            self.team_button["state"] = "normal"
         else:
-            self.activate_ok_button()
-        self.edit_button["state"] = "disabled"
+            self.club_button["state"] = "disabled"
+            self.team_button["state"] = "disabled"
+        self.club_label.config(text=self.club.name if self.club else "-")
+        self.team_label.config(text=self.team.name if self.team else "-")
+        self.deactivate_ok_button()
+        if self.user:
+            if self.league:
+                if self.home_guest.get():
+                    self.activate_ok_button()
+            else:
+                self.activate_ok_button()
+            self.edit_button["state"] = "normal"
 
     def edit_user(self):
         self.userlistbox.unbind("<<ListboxSelect>>")
