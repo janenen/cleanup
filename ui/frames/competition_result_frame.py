@@ -30,7 +30,7 @@ class CompetitionResultFrame(DefaultFrame):
         self.close_button = ttk.Button(self, text="Beenden", command=self.actionClose)
         Hovertip(
             self.close_button,
-            "Wettbewerb beenden",
+            "Wettkampf beenden",
         )
         self.columnconfigure(3, weight=1)
         self.grid(column=1, row=0, padx=5, pady=5, sticky="nsew")

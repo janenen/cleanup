@@ -19,11 +19,11 @@ class CompetitionControlFrame(DefaultFrame):
         self.general_competition_labelframe.columnconfigure(1, weight=1)
         self.add_competition_button = ttk.Button(
             self.general_competition_labelframe,
-            text="Wettbewerb hinzufügen",
+            text="Wettkampf hinzufügen",
             command=self.add_competition,
         )
         self.add_competition_button.grid(row=0, column=1, sticky="e")
-        Hovertip(self.add_competition_button, "Fügt einen neuen Wettbewerb hinzu")
+        Hovertip(self.add_competition_button, "Fügt einen neuen Wettkampf hinzu")
 
         self.general_competition_labelframe.grid(row=0, column=0, sticky="ew")
 
@@ -54,7 +54,7 @@ class CompetitionControlFrame(DefaultFrame):
         self.add_entry_button.grid(row=0, column=2, sticky="e")
         Hovertip(
             self.add_entry_button,
-            "Dem aktuellen Wettbewerb einen weitern Beitrag hinzufügen",
+            "Dem aktuellen Wettkampf einen weitern Beitrag hinzufügen",
         )
         self.show_entries_button = ttk.Button(
             self.current_competition_labelframe,
@@ -74,7 +74,7 @@ class CompetitionControlFrame(DefaultFrame):
         self.finish_competition_button["state"] = "disabled"
         Hovertip(
             self.finish_competition_button,
-            "Zeigt die aktuellen Wettkampfergebnisse an\nHier kann ein Druckbarer Bericht erzegt oder der Wettbewerb beendet werden",
+            "Zeigt die aktuellen Wettkampfergebnisse an\nHier kann ein Druckbarer Bericht erzegt oder der Wettkampf beendet werden",
         )
         self.current_competition_labelframe.grid(row=1, column=0, sticky="ew")
 
@@ -90,7 +90,7 @@ class CompetitionControlFrame(DefaultFrame):
         self.quick_analysis_button.configure(command=self.quick_analysis)
         Hovertip(
             self.quick_analysis_button,
-            "Schnellauswertung\n Das Ergebnis wird keinem Wettbewerb hinzugefügt",
+            "Schnellauswertung\n Das Ergebnis wird keinem Wettkampf hinzugefügt",
         )
         self.show_visualisation_button = ttk.Button(
             self.general_labelframe,
@@ -101,13 +101,13 @@ class CompetitionControlFrame(DefaultFrame):
         Hovertip(self.show_visualisation_button, "Visualisierungsfenster öffnen")
         self.load_competition_button = ttk.Button(
             self.general_labelframe,
-            text="Wettbewerb laden",
+            text="Wettkampf laden",
             command=self.show_old_competitions,
         )
         self.load_competition_button.grid(row=2, column=1, sticky="e")
         Hovertip(
             self.load_competition_button,
-            "Lädt einen gespeicherten Wettbewerb",
+            "Lädt einen gespeicherten Wettkampf",
         )
         self.quit_button = ttk.Button(
             self.general_labelframe, text="Programm beenden", command=self.quit
