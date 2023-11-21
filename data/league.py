@@ -26,7 +26,7 @@ LEAGUE_DB_VERSION = None
 @dataclass
 class LeagueDB:
     leagues: dict[str, RSBLeague] = field(default_factory=dict)
-    version: int = None
+    version: int | None = None
 
     def save(self, file="./db/leagues.json"):
         with open(file, "w") as json_file:

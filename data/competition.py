@@ -41,7 +41,7 @@ COMPETITION_DB_VERSION = None
 @dataclass
 class CompetitionDB:
     competitions: dict[str, Competition] = field(default_factory=dict)
-    version: int = None
+    version: int | None = None
 
     def save(self, file="./db/competitions.json"):
         with open(file, "w") as json_file:
