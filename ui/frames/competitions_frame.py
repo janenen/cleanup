@@ -20,6 +20,10 @@ class Competitions(DefaultFrame):
             return
         if self.showing == "competitions":
             self.competition = self.active_competitions[n]
+            if self.competition.league:
+                self.league = self.leagues[self.competition.league]
+            else:
+                self.league = None
             if self.competition.entries:
                 self.current_match = self.matches[self.competition.entries[-1]]
         elif self.showing == "entries":
@@ -29,7 +33,7 @@ class Competitions(DefaultFrame):
     def update_competitions(self):
         self.showing = "competitions"
         self.competition_listbox.delete("0", "end")
-        for comp in self.competitions.get_active_competitions():
+        for comp in self.active_competitions:
             self.competition_listbox.insert("end", comp.name)
         self.competition_listbox.bind("<<ListboxSelect>>", self.select)
 

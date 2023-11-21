@@ -78,6 +78,7 @@ class ReadingThread(Thread):
     machine: Machine
     result = []
     type_of_target = None
+    shutdown = False
 
     def get_reading(self):
         try:

@@ -30,9 +30,9 @@ class CSVReadingThread(ReadingThread):
                 self.result.append(
                     Shot(
                         ringe=float(groupdict["value"]),
-                        teiler=int(float(groupdict["distance"]) * 10),
-                        x=int(float(groupdict["x"]) * 100),
-                        y=int(float(groupdict["y"]) * 100),
+                        teiler=float(groupdict["distance"]),
+                        x=float(groupdict["x"]),
+                        y=float(groupdict["y"]),
                     )
                 )
                 self._messages.append(self.result[-1])

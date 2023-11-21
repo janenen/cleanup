@@ -29,7 +29,10 @@ class DatabaseBrowserFrame(DefaultFrame):
         ttk.Label(self, text="Mannschaft:").grid(column=2, row=0, sticky="e")
         self.team_selected = tk.StringVar()
         self.team_selected_menu = tk.OptionMenu(
-            self, self.team_selected, *[team[1].name for team in self.teams], command=self.by_team
+            self,
+            self.team_selected,
+            *[team[1].name for team in self.teams],
+            command=self.by_team,
         )
         self.team_selected_menu.grid(column=3, row=0, sticky="w")
         Hovertip(
@@ -75,7 +78,7 @@ class DatabaseBrowserFrame(DefaultFrame):
         self.competition_selected_menu = tk.OptionMenu(
             self,
             self.competition_selected,
-            *[competition[1].name for competition in self.competitions]
+            *[competition[1].name for competition in self.competitions],
         )
         self.competition_selected_menu.grid(column=3, row=4, sticky="w")
         Hovertip(
@@ -90,7 +93,6 @@ class DatabaseBrowserFrame(DefaultFrame):
         self.scrollbar.config(command=self.querrylistbox.yview)
         self.scrollbar.grid(column=5, row=5, sticky="wens")
         self.querrylistbox.grid(columnspan=5, column=0, row=5, sticky="ew")
-        
 
         self.grid(column=1, row=0, padx=5, pady=5, sticky="nsew")
 
@@ -98,7 +100,7 @@ class DatabaseBrowserFrame(DefaultFrame):
         self.querrylistbox.delete("0", "end")
         self.deactivate_ok_button()
         self.activate_back_button()
-        
+
     def enable_all_inputs(self):
         self.team_selected_menu.configure(state="normal")
         self.match_selected_menu.configure(state="normal")
@@ -106,32 +108,34 @@ class DatabaseBrowserFrame(DefaultFrame):
         self.club_selected_menu.configure(state="normal")
         self.competition_selected_menu.configure(state="normal")
 
-    def querry(self,querry):
+    def querry(self, querry):
         self.querrylistbox.delete("0", "end")
         self.enable_all_inputs()
-        if querry=="Mannschaft":
+        if querry == "Mannschaft":
             self.team_selected_menu.configure(state="disabled")
             for team in self.teams:
                 self.querrylistbox.insert("end", team[1].name)
-        elif querry=="Match":
+        elif querry == "Match":
             self.match_selected_menu.configure(state="disabled")
             for match in self.matches:
-                self.querrylistbox.insert("end", f"{match[1].shooter.name} - {match[1].date}")
-        elif querry=="Schütze":
+                self.querrylistbox.insert(
+                    "end", f"{match[1].shooter.name} - {match[1].date}"
+                )
+        elif querry == "Schütze":
             self.user_selected_menu.configure(state="disabled")
             for user in self.users:
                 self.querrylistbox.insert("end", user[1].shooter.name)
-        elif querry=="Verein":
+        elif querry == "Verein":
             self.club_selected_menu.configure(state="disabled")
             for club in sorted(self.clubs):
                 self.querrylistbox.insert("end", club[1].name)
-        elif querry=="Wettbewerb":
+        elif querry == "Wettbewerb":
             self.competition_selected_menu.configure(state="disabled")
             for competition in self.competitions:
                 self.querrylistbox.insert("end", competition[1].name)
 
-    def by_team(self,team):
-        querry=self.desired_querry.get()
+    def by_team(self, team):
+        querry = self.desired_querry.get()
         self.querrylistbox.delete("0", "end")
-        if querry=="Match":
+        if querry == "Match":
             pass

@@ -9,6 +9,7 @@ from .default_frame import DefaultFrame
 class ReadingFrame(DefaultFrame):
     def __init__(self, container, parent):
         super().__init__(container, parent)
+        self.reader: ReadingThread = None
         # field options
         options = {"padx": 5, "pady": 0}
         self.statusbox = tk.Listbox(self, state="normal")
@@ -40,12 +41,13 @@ class ReadingFrame(DefaultFrame):
         if config_success:
             self.statusbox.insert("end", "Scheiben eingeben!")
             self.container.update()
-            reader: ReadingThread = machine.get_reading_thread()
-            reader.start()
+            self.reader = machine.get_reading_thread()
+            self.reader.start()
             first = True
-            while not reader.is_finished():
-                shot, self.type_of_target = reader.get_reading()
+            while not self.reader.is_finished():
+                shot, self.type_of_target = self.reader.get_reading()
                 if shot == None:
+                    self.container.update()
                     time.sleep(0.5)
                 else:
                     if first:
@@ -53,6 +55,8 @@ class ReadingFrame(DefaultFrame):
                         self.redraw_target()
                     self.draw_shot(shot)
                     self.container.update()
+            if self.reader.shutdown:
+                return
             self.statusbox.insert("end", "Einlesen abgeschlossen")
             self.container.update()
 
@@ -60,7 +64,7 @@ class ReadingFrame(DefaultFrame):
                 date=datetime.date.today().strftime("%d.%m.%Y"),
                 shooter=self.user.shooter,
                 type_of_target=self.type_of_target,
-                shots=reader.get_result(),
+                shots=self.reader.get_result(),
                 club=self.club.id if self.club else "",
                 team=self.team.id if self.team else "",
             )
@@ -79,16 +83,15 @@ class ReadingFrame(DefaultFrame):
 
         self.activate_back_button()
         self.activate_ok_button()
-        # self.parent.progress.stop()
         self.proceed()
 
     def draw_shot(self, shot):
         radiusCalibre = RADIUS_DICT[self.type_of_target][4]
         self.canvas.create_oval(
-            (shot.x - radiusCalibre) * self.scalefactor + self.canvsize / 2,
-            -(shot.y - radiusCalibre) * self.scalefactor + self.canvsize / 2,
-            (shot.x + radiusCalibre) * self.scalefactor + self.canvsize / 2,
-            -(shot.y + radiusCalibre) * self.scalefactor + self.canvsize / 2,
+            (shot.x * 100 - radiusCalibre) * self.scalefactor + self.canvsize / 2,
+            -(shot.y * 100 - radiusCalibre) * self.scalefactor + self.canvsize / 2,
+            (shot.x * 100 + radiusCalibre) * self.scalefactor + self.canvsize / 2,
+            -(shot.y * 100 + radiusCalibre) * self.scalefactor + self.canvsize / 2,
             # fill="orange" if a in self.match.ausreisser else "green",
             fill="green",
             tag="shot",

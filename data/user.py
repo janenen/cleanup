@@ -37,10 +37,14 @@ class User:
             self.competitions.append(competition.id)
 
 
+USER_DB_VERSION = None
+
+
 @dataclass_json
 @dataclass
 class UserDB:
     users: dict[str, User] = field(default_factory=dict)
+    version = None
 
     def save(self, file="./db/users.json"):
         if not os.path.exists(os.path.dirname(file)):
@@ -53,6 +57,10 @@ class UserDB:
             try:
                 with open(file, "r") as json_file:
                     db = UserDB.from_json(json_file.read())
+                    if not db.version == USER_DB_VERSION:
+                        if db.version == None:
+                            # provide upgrade from version n-1
+                            pass
             except Exception as e:
                 print(e)
                 print("Format not correct")
@@ -71,7 +79,7 @@ class UserDB:
             os.remove("./schuetzen.ini")
         else:
             print("User file not existing")
-            db = UserDB()
+            db = UserDB(version=USER_DB_VERSION)
             db.save(file)
         return db
 

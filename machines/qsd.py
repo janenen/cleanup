@@ -24,9 +24,9 @@ class QSDReadingThread(ReadingThread):
                 self.result.append(
                     Shot(
                         ringe=round(double[0], 1),
-                        teiler=int(double[3] * 10),
-                        x=int(double[1]),
-                        y=int(double[2]),
+                        teiler=double[3],
+                        x=double[1],
+                        y=double[2],
                     )
                 )
                 self._messages.append(self.result[-1])

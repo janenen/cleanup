@@ -10,6 +10,7 @@ SORTING_FUNCTION = {
     "Bestes Ergebnis": {"key": lambda x: x.get_result(), "reverse": True},
     "Bestes Ergebnis Zehntel": {"key": lambda x: x.get_result(True), "reverse": True},
     "Bester Teiler": {"key": lambda x: x.best.teiler, "reverse": False},
+    "Liga des RSB (Kreis/Bezirk/Landesliga)": {},
 }
 
 
@@ -26,23 +27,21 @@ class Competition:
     modus: str = "Bestes Ergebnis"
     entries: list[str] = field(default_factory=list)
     id: str = ""
+    league: str = ""
 
     def add_match(self, match: Match):
         if not match.id in self.entries:
             self.entries.append(match.id)
 
-    # def get_sorted_results(self):
-    #    return sorted(
-    #        self.entries,
-    #        key=SORTING_FUNCTION[self.modus]["key"],
-    #        reverse=SORTING_FUNCTION[self.modus]["reverse"],
-    #    )
+
+COMPETITION_DB_VERSION = None
 
 
 @dataclass_json
 @dataclass
 class CompetitionDB:
     competitions: dict[str, Competition] = field(default_factory=dict)
+    version: int | None = None
 
     def save(self, file="./db/competitions.json"):
         with open(file, "w") as json_file:
@@ -54,10 +53,14 @@ class CompetitionDB:
         try:
             with open(file, "r") as json_file:
                 db = CompetitionDB.from_json(json_file.read())
+                if not db.version == COMPETITION_DB_VERSION:
+                    if db.version == None:
+                        # provide upgrade from version n-1
+                        pass
         except Exception as e:
             print(e)
             print("Matches file not existing")
-            db = CompetitionDB()
+            db = CompetitionDB(version=COMPETITION_DB_VERSION)
             db.save(file)
         return db
 
@@ -82,6 +85,9 @@ class CompetitionDB:
             if not comp[1].active:
                 returnlist.append(comp[1])
         return returnlist
+
+    def remove(self, key):
+        del self.competitions[key]
 
     def __getitem__(self, key):
         return self.competitions[key]
