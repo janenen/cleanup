@@ -9,6 +9,7 @@ from .default_frame import DefaultFrame
 class ReadingFrame(DefaultFrame):
     def __init__(self, container, parent):
         super().__init__(container, parent)
+        self.reader: ReadingThread = None
         # field options
         options = {"padx": 5, "pady": 0}
         self.statusbox = tk.Listbox(self, state="normal")
@@ -40,7 +41,7 @@ class ReadingFrame(DefaultFrame):
         if config_success:
             self.statusbox.insert("end", "Scheiben eingeben!")
             self.container.update()
-            self.reader: ReadingThread = machine.get_reading_thread()
+            self.reader = machine.get_reading_thread()
             self.reader.start()
             first = True
             while not self.reader.is_finished():
@@ -82,7 +83,6 @@ class ReadingFrame(DefaultFrame):
 
         self.activate_back_button()
         self.activate_ok_button()
-        # self.parent.progress.stop()
         self.proceed()
 
     def draw_shot(self, shot):

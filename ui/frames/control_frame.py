@@ -100,6 +100,7 @@ class ControlFrame(ttk.Frame):
                 self.nextframe = "user"
                 self.add_to_current_competition = True
             elif self.frames["control"].next_step == "quick analysis":
+                self.league = None
                 self.add_to_current_competition = False
                 self.nextframe = "competition"
             elif self.frames["control"].next_step == "show entries":
@@ -113,7 +114,6 @@ class ControlFrame(ttk.Frame):
             if self.frames["competition"].parseInput():
                 if not self.add_to_current_competition:
                     self.nextframe = "user"
-
                 else:
                     if (
                         self.competition.modus
@@ -215,14 +215,13 @@ class ControlFrame(ttk.Frame):
         elif self.nextframe == "competition_result":
             self.competitions_frame.competition_listbox.configure(state="normal")
             self.nextframe = "control"
-            # self.frame.remove_current_competition()
 
         elif self.nextframe == "inactive_competitons":
             self.nextframe = "control"
         self.change_frame()
 
     def actionBack(self):
-        if self.nextframe == "reading":
+        if self.nextframe == "reading" and self.frame.reader:
             self.frame.reader.shutdown = True
         self.competitions_frame.competition_listbox.configure(state="normal")
         self.nextframe = "control"

@@ -67,12 +67,15 @@ class CompetitionControlFrame(DefaultFrame):
 
         self.finish_competition_button = ttk.Button(
             self.current_competition_labelframe,
-            text="Wettbewerb beenden",
+            text="Wettkampfergebnisse anzeigen",
             command=self.finish_competition,
         )
         self.finish_competition_button.grid(row=3, column=2, sticky="e")
         self.finish_competition_button["state"] = "disabled"
-        Hovertip(self.finish_competition_button, "Beendet den aktuellen Wettbewerb")
+        Hovertip(
+            self.finish_competition_button,
+            "Zeigt die aktuellen Wettkampfergebnisse an\nHier kann ein Druckbarer Bericht erzegt oder der Wettbewerb beendet werden",
+        )
         self.current_competition_labelframe.grid(row=1, column=0, sticky="ew")
 
         # Allgemeines
