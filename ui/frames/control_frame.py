@@ -7,9 +7,7 @@ from data.club import Club, ClubDB
 from data.competition import Competition, CompetitionDB
 from data.league import LeagueDB, RSBLeague
 from data.match import Match, MatchDB
-
-# from data.shooter import Shooter
-from data.user import User, UserDB  # , UserList, UserSettings
+from data.user import User, UserDB
 from data.team import Team, TeamDB
 from machines.machine import Machine
 from ui.frames.club_settings_frame import ClubSettingsFrame
@@ -70,7 +68,7 @@ class ControlFrame(ttk.Frame):
         self.active_competitions = self.competitions.get_active_competitions()
 
         # initialize frames
-        self.frames = {
+        self.frames: dict[str, ttk.Frame] = {
             "control": CompetitionControlFrame(container, self),
             "competition": CompetitionSettingsFrame(container, self),
             "machine": MaschineSelectionFrame(container, self),

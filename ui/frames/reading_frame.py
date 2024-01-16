@@ -1,8 +1,9 @@
 import datetime
 import tkinter as tk
 import time
+from tkinter import messagebox
 from data.match import RADIUS_DICT, Match
-from machines.machine import MachineException, ReadingThread
+from machines.machine import MachineException, ReadingNotAvailable, ReadingThread
 from .default_frame import DefaultFrame
 
 
@@ -45,16 +46,24 @@ class ReadingFrame(DefaultFrame):
             self.reader.start()
             first = True
             while not self.reader.is_finished():
-                shot, self.type_of_target = self.reader.get_reading()
-                if shot == None:
-                    self.container.update()
+                self.container.update()
+                try:
+                    shot, type_of_target = self.reader.get_reading()
+                except ReadingNotAvailable:
                     time.sleep(0.5)
-                else:
-                    if first:
-                        first = False
-                        self.redraw_target()
-                    self.draw_shot(shot)
+                    continue
+                if not type_of_target == self.competition.type_of_target:
+                    self.reader.shutdown = True
+                    self.statusbox.insert("end", "Falscher Scheibentyp")
                     self.container.update()
+                    messagebox.showerror("Falscher Scheibentyp", "Falscher Scheibentyp")
+                    self.recede()
+                    return
+                self.type_of_target = type_of_target
+                if first:
+                    first = False
+                    self.redraw_target()
+                self.draw_shot(shot)
             if self.reader.shutdown:
                 return
             self.statusbox.insert("end", "Einlesen abgeschlossen")

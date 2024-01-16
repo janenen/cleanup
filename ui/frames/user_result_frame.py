@@ -171,7 +171,6 @@ class UserResultFrame(DefaultFrame):
             self.serieslabel.config(text=f"Serie {self.i}")
             self.resultlabelframe.config(text=f"Serie {self.i}")
         elif self.i == 0:
-            # self.i = len(self.current_match.shots)/10
             self.actuallist = Series(self.current_match.shots)
             self.serieslabel.config(text="Gesammt")
             self.resultlabelframe.config(text="Gesammtergebnis")
@@ -323,13 +322,6 @@ class UserResultFrame(DefaultFrame):
         self.activate_ok_button()
         self.deactivate_back_button()
 
-        # self.generate_button["state"] = "normal"
-        # if self.user:
-        #    self.extended.set(self.user.settings.extended_analysis)
-        # if self.current_match:
-        #    self.current_match: Match = self.current_match
-        # else:
-        #    self.current_match: Match = self.competition.entries[-1]
         self.actuallist = Series(self.current_match.shots)
         self.parent.competitions_frame.competition_listbox.configure(state="normal")
         self.parent.competitions_frame.update_entries()

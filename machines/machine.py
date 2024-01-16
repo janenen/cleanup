@@ -20,6 +20,10 @@ class MachineException(Exception):
         super().__init__(self.message)
 
 
+class ReadingNotAvailable(Exception):
+    pass
+
+
 @dataclass_json
 @dataclass
 class Machine(ABC):
@@ -84,7 +88,7 @@ class ReadingThread(Thread):
         try:
             return self._messages.pop(0), self.type_of_target  # Workaround fix later
         except IndexError:
-            return None, None
+            raise ReadingNotAvailable
 
     def is_finished(self):
         return not self.is_alive() and not self._messages
