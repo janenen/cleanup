@@ -141,6 +141,9 @@ class DefaultFrame(ttk.Frame):
     def proceed(self):
         self.parent.actionOK()
 
+    def recede(self):
+        self.parent.actionBack()
+
     def activate_back_button(self):
         self.parent.back_button["state"] = "normal"
 
