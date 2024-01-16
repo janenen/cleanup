@@ -137,5 +137,17 @@ class DatabaseBrowserFrame(DefaultFrame):
     def by_team(self, team):
         querry = self.desired_querry.get()
         self.querrylistbox.delete("0", "end")
+        print(querry)
         if querry == "Match":
-            pass
+            key=""
+            for teamkey,team in self.teams.teams.items():
+                if team.name==self.team_selected.get():
+                    key=teamkey
+                    break
+            print(key)
+            #print([match for match in self.matches])
+            #print([teammatch for teammatch in filter(lambda x: x[1].team == self.team_selected.get(),self.matches)])
+            for match in [teammatch for teammatch in filter(lambda x: x[1].team == key,self.matches)]:
+                self.querrylistbox.insert(
+                    "end", f"{match[1].shooter.name} - {match[1].date}"
+                )
