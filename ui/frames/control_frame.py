@@ -58,6 +58,7 @@ class ControlFrame(ttk.Frame):
         self.grid(column=1, row=1, padx=5, pady=5, sticky="se")
         # self.reset()
         self.competitions_frame = Competitions(container, self)
+        MatchDB.upgrade()
         # read DB
         self.users = UserDB.load()
         self.clubs = ClubDB.load()
@@ -149,6 +150,8 @@ class ControlFrame(ttk.Frame):
             elif self.frames["user"].club_to_select():
                 self.nextframe = "select_club"
             else:
+                self.competitions_frame.competition_listbox.unbind("<<ListboxSelect>>")
+                self.competitions_frame.competition_listbox.configure(state="disabled")
                 self.nextframe = "machine"
 
         elif self.nextframe == "user_settings":

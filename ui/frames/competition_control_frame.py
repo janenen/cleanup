@@ -170,6 +170,7 @@ class CompetitionControlFrame(DefaultFrame):
         self.finish_competition_button["state"] = "disabled"
         self.competition_name_label.config(text="-")
         self.competition_count_label.config(text="-")
+        self.current_match = None
 
         if not self.add_to_current_competition:
             self.competition = None

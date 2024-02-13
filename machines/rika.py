@@ -30,7 +30,7 @@ class RikaReadingThread(ReadingThread):
         self._messages = []
         self.result = []
         with self.machine.connection as conn:
-            while len(self.result) < self.machine.settings.count:
+            while len(self.result) < self.machine.rest:
                 if self.shutdown:
                     break
                 conn.write(SYN)
@@ -75,7 +75,8 @@ class Rika(Machine):
     def get_string(self) -> str:
         return f"Rika SAG-2 an {self._connection.name}"
 
-    def config(self):
+    def config(self, rest=None):
+        self.rest = rest if rest else self.settings.count
         with self.connection as conn:
             conn.read()  # flush buffer
             conn.write(EINZEL)  # d1 einzeltreffer
@@ -84,7 +85,12 @@ class Rika(Machine):
                 raise MachineException("Rika antwortet nicht")
             # ESC S XXX CR
             conn.write(
-                ESC + b"S" + bytes(str(self.settings.count).zfill(3), "utf-8") + CR
+                ESC
+                + b"S"
+                + bytes(
+                    str(self.settings.count if not rest else rest).zfill(3), "utf-8"
+                )
+                + CR
             )
             ans = conn.read(1)
             if ans != ACK:

@@ -67,10 +67,9 @@ class CompetitionDB:
 
     def add_competition(self, competition: Competition) -> str:
         if not competition.id:
-            id = str(uuid.uuid4())
-            competition.id = id
+            competition.id = str(uuid.uuid4())
         if not competition.id in self.competitions.keys():
-            self.competitions[id] = competition
+            self.competitions[competition.id] = competition
         return competition.id
 
     def get_active_competitions(self) -> list[Competition]:

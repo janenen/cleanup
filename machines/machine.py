@@ -39,28 +39,22 @@ class Machine(ABC):
         self._connection = port
 
     @abstractmethod
-    def set_port(self, port):
-        ...
+    def set_port(self, port): ...
 
     @abstractmethod
-    def config(self):
-        ...
+    def config(self, rest=None): ...
 
     @abstractmethod
-    def is_available(self) -> bool:
-        ...
+    def is_available(self) -> bool: ...
 
     @abstractmethod
-    def get_string(self) -> str:
-        ...
+    def get_string(self) -> str: ...
 
     @abstractmethod
-    def get_reading_thread(self):
-        ...
+    def get_reading_thread(self) -> "ReadingThread": ...
 
     @abstractproperty
-    def needs_setting(self) -> list[str]:
-        ...
+    def needs_setting(self) -> list[str]: ...
 
     def __str__(self) -> str:
         return self.get_string()
@@ -91,6 +85,7 @@ class ReadingThread(Thread):
             raise ReadingNotAvailable
 
     def is_finished(self):
+        print(f"is alive: {self.is_alive()}, msgs: {self._messages}")
         return not self.is_alive() and not self._messages
 
     def get_result(self) -> list[Shot]:

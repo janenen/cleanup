@@ -321,6 +321,9 @@ class UserResultFrame(DefaultFrame):
     def reset(self):
         self.activate_ok_button()
         self.deactivate_back_button()
+        if not self.current_match:
+            if self.competition:
+                self.current_match = self.matches[self.competition.entries[-1]]
 
         self.actuallist = Series(self.current_match.shots)
         self.parent.competitions_frame.competition_listbox.configure(state="normal")

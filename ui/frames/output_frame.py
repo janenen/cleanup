@@ -90,7 +90,9 @@ class OutputFrame(DefaultFrame):
 
     def _makeCSV(self):
         filedate = datetime.datetime.strptime(self.current_match.date, "%d.%m.%Y")
-        filepath = self.current_match.shooter.name.replace(" ", "_") + "\\csv"
+        filepath = (
+            self.users[self.current_match.shooter].name.replace(" ", "_") + "\\csv"
+        )
         filename = datetime.datetime.strftime(filedate, "%y%m%d")
         outdir = os.getcwd()
         newpath = os.path.join(outdir, "output", filepath)
@@ -119,7 +121,7 @@ class OutputFrame(DefaultFrame):
 
     def _makeShooterPDF(self):
         filedate = datetime.datetime.strptime(self.current_match.date, "%d.%m.%Y")
-        filepath = self.current_match.shooter.name.replace(" ", "_")
+        filepath = self.users[self.current_match.shooter].name.replace(" ", "_")
         filename = f"""{datetime.datetime.strftime(filedate, "%y%m%d")}_{self.current_match.type_of_target}"""
         outdir = os.getcwd()
         pdf = FPDF()
@@ -210,7 +212,7 @@ class OutputFrame(DefaultFrame):
         pdf.text(90, 70, str(self.current_match.countRing(6)))
         pdf.text(100, 70, str(self.current_match.countRing(5)))
 
-        pdf.text(35, 20 + 10, self.current_match.shooter.name)
+        pdf.text(35, 20 + 10, self.users[self.current_match.shooter].name)
         pdf.text(
             35,
             30 + 5,
@@ -381,9 +383,11 @@ class OutputFrame(DefaultFrame):
                 pdf.text(
                     130,
                     abstSerie * i + start_y + 5 + 15,
-                    "{:.1f}".format(sum40)
-                    if self.competition.decimal
-                    else "{:d}".format(sum40),
+                    (
+                        "{:.1f}".format(sum40)
+                        if self.competition.decimal
+                        else "{:d}".format(sum40)
+                    ),
                 )
                 pdf.text(
                     130,

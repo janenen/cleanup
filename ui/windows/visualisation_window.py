@@ -29,7 +29,7 @@ class Visualisation(tk.Toplevel):
         self.keep_updating = True
         Thread(target=self.update_thread_function).start()
 
-    def update(self):
+    def update_frame(self):
         for competition in self.parent.active_competitions:
             if competition.entries:
                 if not competition.id in self.competition_frames.keys():
@@ -42,13 +42,14 @@ class Visualisation(tk.Toplevel):
 
     def update_thread_function(self):
         while self.keep_updating:
-            self.update()
+            self.update_frame()
             try:
                 for id in self.competition_frames:
-                    self.competition_frames[id].update()
+                    self.competition_frames[id].update_frame()
                     self.competition_frames[id].tkraise()
                     time.sleep(2)
-            except Exception:
+            except Exception as e:
+                print(e)
                 self.keep_updating = False
 
 
@@ -65,36 +66,63 @@ class CompetitionVisualisationFrame(ttk.Frame):
 
         self.grid(row=0, column=0, sticky="nesw")
 
-    def update(self):
+    def update_frame(self):
         width = self.container.winfo_width() - 20
         height = self.container.winfo_height() - 60
-        size = min(height / 2, width / (len(self.competition.entries) // 2 + 1))
+        print(f"A_={width*height}")
+        print(f"A0={width*height/len(self.competition.entries)}")
+        print(
+            f"a={-(19/2)+((19/2)**2+width*height/len(self.competition.entries))**(1/2)}"
+        )
+        # size = min(height / 2, width / (len(self.competition.entries) // 2 + 1))
+        size = -(19 / 2) + (
+            (19 / 2) ** 2 + width * height / len(self.competition.entries)
+        ) ** (1 / 2)
+        n = (width // size) + 1
+        m = int(height // (size + 19)) + 1
+        # print(f"n={n}, m={m}")
         if not size == self.size:
+            # print("resize")
             self.size = size
             for frame in self.match_frames.items():
                 frame[1].destroy()
             self.match_frames.clear()
-        for match_id in self.competition.entries:
+
+        for match_id in self.competition.entries:  # ToDo Update
             if not match_id in self.match_frames.keys():
+                # print("new frame")
                 self.match_frames[match_id] = ResultVisualisationFrame(
                     self, self.container.parent.matches[match_id]
                 )
+            else:
+                # print("update")
+                self.match_frames[match_id].update_frame()
         for i, frame in enumerate(self.match_frames.items()):
-            frame[1].grid(row=i % 2 + 1, column=i // 2, sticky="nesw")
+            frame[1].grid(row=i // m, column=i % m, sticky="nesw")
 
 
 class ResultVisualisationFrame(ttk.Frame):
     def __init__(self, container, match: Match):
         self.container: CompetitionVisualisationFrame = container
         super().__init__(container)
-        label = ttk.Label(self, text=match.shooter.name)
+        label = ttk.Label(
+            self, text=self.container.container.parent.users[match.shooter].name
+        )
         label.grid(column=0, row=0)
+
         self.match: Match = match
 
         self.canvas = tk.Canvas(
-            self, bg="white", height=self.container.size, width=self.container.size
+            self,
+            bg="white",
+            height=self.container.size - 19,
+            width=self.container.size - 19,
         )
         self.canvas.grid(row=1, column=0)
+        self.update_frame()
+        # print(f"c={label.winfo_height()}")
+
+    def update_frame(self):
         self.draw_target()
         self.redraw_shots()
 
@@ -116,14 +144,16 @@ class ResultVisualisationFrame(ttk.Frame):
 
         self.ringcircles = [
             self.canvas.create_oval(
-                (-i * incrementRing) * scalefactor + self.container.size / 2,
-                -(-i * incrementRing) * scalefactor + self.container.size / 2,
-                (i * incrementRing) * scalefactor + self.container.size / 2,
-                -(i * incrementRing) * scalefactor + self.container.size / 2,
+                -(i * incrementRing + radiusTen) * scalefactor
+                + self.container.size / 2,
+                (i * incrementRing + radiusTen) * scalefactor + self.container.size / 2,
+                (i * incrementRing + radiusTen) * scalefactor + self.container.size / 2,
+                -(i * incrementRing + radiusTen) * scalefactor
+                + self.container.size / 2,
                 outline="white" if i * incrementRing < radiusBlack else "black",
                 tag="ring",
             )
-            for i in range(1, 10)
+            for i in range(10)
         ]
 
     def redraw_shots(self):
