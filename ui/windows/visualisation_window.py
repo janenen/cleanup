@@ -1,3 +1,4 @@
+from math import ceil
 import os
 import sys
 from threading import Thread
@@ -27,15 +28,17 @@ class Visualisation(tk.Toplevel):
         self.iconbitmap(os.path.join(base_path, "ui", "logo.ico"))
         self.competition_frames: dict[str, CompetitionVisualisationFrame] = {}
         self.keep_updating = True
+        self.columnconfigure(0, weight=1)
+        self.rowconfigure(0, weight=1)
         Thread(target=self.update_thread_function).start()
 
     def update_frame(self):
         for competition in self.parent.active_competitions:
             if competition.entries:
                 if not competition.id in self.competition_frames.keys():
-                    self.competition_frames[
-                        competition.id
-                    ] = CompetitionVisualisationFrame(self, competition)
+                    self.competition_frames[competition.id] = (
+                        CompetitionVisualisationFrame(self, competition)
+                    )
             for frame in self.competition_frames.keys():
                 if frame not in [comp.id for comp in self.parent.active_competitions]:
                     del self.competition_frames[frame]
@@ -48,7 +51,7 @@ class Visualisation(tk.Toplevel):
                     self.competition_frames[id].update_frame()
                     self.competition_frames[id].tkraise()
                     time.sleep(2)
-            except Exception as e:
+            except tk.TclError as e:
                 print(e)
                 self.keep_updating = False
 
@@ -58,32 +61,39 @@ class CompetitionVisualisationFrame(ttk.Frame):
         super().__init__(container)
         self.container: Visualisation = container
         self.competition: Competition = competition
-        self.size = 0
+        self.frame_size = 0
 
         self.match_frames: dict[str, ResultVisualisationFrame] = {}
         label = ttk.Label(self, text=competition.name)
+
         label.grid(column=0, row=0)
 
         self.grid(row=0, column=0, sticky="nesw")
 
     def update_frame(self):
-        width = self.container.winfo_width() - 20
-        height = self.container.winfo_height() - 60
-        print(f"A_={width*height}")
-        print(f"A0={width*height/len(self.competition.entries)}")
-        print(
-            f"a={-(19/2)+((19/2)**2+width*height/len(self.competition.entries))**(1/2)}"
-        )
-        # size = min(height / 2, width / (len(self.competition.entries) // 2 + 1))
-        size = -(19 / 2) + (
-            (19 / 2) ** 2 + width * height / len(self.competition.entries)
-        ) ** (1 / 2)
-        n = (width // size) + 1
-        m = int(height // (size + 19)) + 1
-        # print(f"n={n}, m={m}")
-        if not size == self.size:
-            # print("resize")
-            self.size = size
+        c = 20
+        combinations = []
+        k = len(self.competition.entries)
+        for i in range(k):
+            combinations.append((i + 1, ceil(k / (i + 1))))
+        width = self.winfo_width()
+        height = self.winfo_height()
+        optimal_combination = (1, 1)
+        area = 0
+        size = 0
+        for combination in combinations:
+            max_height = (height - combination[0] * c) / combination[0]
+            max_width = (width - 20) / combination[1]
+            constrian = min(max_height, max_width)
+            area0 = constrian * (constrian + c)
+            if area0 > area:
+                optimal_combination = combination
+                area = area0
+                size = constrian
+        m = optimal_combination[0]
+        n = optimal_combination[1]
+        if not size == self.frame_size:
+            self.frame_size = size
             for frame in self.match_frames.items():
                 frame[1].destroy()
             self.match_frames.clear()
@@ -98,7 +108,7 @@ class CompetitionVisualisationFrame(ttk.Frame):
                 # print("update")
                 self.match_frames[match_id].update_frame()
         for i, frame in enumerate(self.match_frames.items()):
-            frame[1].grid(row=i // m, column=i % m, sticky="nesw")
+            frame[1].grid(row=i // n, column=i % n, sticky="nesw")
 
 
 class ResultVisualisationFrame(ttk.Frame):
@@ -115,9 +125,10 @@ class ResultVisualisationFrame(ttk.Frame):
         self.canvas = tk.Canvas(
             self,
             bg="white",
-            height=self.container.size - 19,
-            width=self.container.size - 19,
+            height=self.container.frame_size,
+            width=self.container.frame_size,
         )
+
         self.canvas.grid(row=1, column=0)
         self.update_frame()
         # print(f"c={label.winfo_height()}")
@@ -132,12 +143,12 @@ class ResultVisualisationFrame(ttk.Frame):
         incrementRing = RADIUS_DICT[self.match.type_of_target][2]
         radiusBlack = RADIUS_DICT[self.match.type_of_target][3]
         w = 2 * (radiusTen + 9 * incrementRing)
-        scalefactor = self.container.size / w
+        scalefactor = self.container.frame_size / w
         self.canvas.create_oval(
-            (-radiusBlack) * scalefactor + self.container.size / 2,
-            radiusBlack * scalefactor + self.container.size / 2,
-            radiusBlack * scalefactor + self.container.size / 2,
-            -radiusBlack * scalefactor + self.container.size / 2,
+            (-radiusBlack) * scalefactor + self.container.frame_size / 2,
+            radiusBlack * scalefactor + self.container.frame_size / 2,
+            radiusBlack * scalefactor + self.container.frame_size / 2,
+            -radiusBlack * scalefactor + self.container.frame_size / 2,
             fill="black",
             tag="ring",
         )
@@ -145,11 +156,13 @@ class ResultVisualisationFrame(ttk.Frame):
         self.ringcircles = [
             self.canvas.create_oval(
                 -(i * incrementRing + radiusTen) * scalefactor
-                + self.container.size / 2,
-                (i * incrementRing + radiusTen) * scalefactor + self.container.size / 2,
-                (i * incrementRing + radiusTen) * scalefactor + self.container.size / 2,
+                + self.container.frame_size / 2,
+                (i * incrementRing + radiusTen) * scalefactor
+                + self.container.frame_size / 2,
+                (i * incrementRing + radiusTen) * scalefactor
+                + self.container.frame_size / 2,
                 -(i * incrementRing + radiusTen) * scalefactor
-                + self.container.size / 2,
+                + self.container.frame_size / 2,
                 outline="white" if i * incrementRing < radiusBlack else "black",
                 tag="ring",
             )
@@ -162,13 +175,17 @@ class ResultVisualisationFrame(ttk.Frame):
         radiusTen = RADIUS_DICT[self.match.type_of_target][0]
         incrementRing = RADIUS_DICT[self.match.type_of_target][2]
         w = 2 * (radiusTen + 9 * incrementRing)
-        scalefactor = self.container.size / w
+        scalefactor = self.container.frame_size / w
         for shot in self.match.shots:
             self.canvas.create_oval(
-                (shot.x * 100 - radiusCalibre) * scalefactor + self.container.size / 2,
-                -(shot.y * 100 - radiusCalibre) * scalefactor + self.container.size / 2,
-                (shot.x * 100 + radiusCalibre) * scalefactor + self.container.size / 2,
-                -(shot.y * 100 + radiusCalibre) * scalefactor + self.container.size / 2,
+                (shot.x * 100 - radiusCalibre) * scalefactor
+                + self.container.frame_size / 2,
+                -(shot.y * 100 - radiusCalibre) * scalefactor
+                + self.container.frame_size / 2,
+                (shot.x * 100 + radiusCalibre) * scalefactor
+                + self.container.frame_size / 2,
+                -(shot.y * 100 + radiusCalibre) * scalefactor
+                + self.container.frame_size / 2,
                 fill="green",
                 tag="shot",
             )
