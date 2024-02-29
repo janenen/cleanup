@@ -166,8 +166,6 @@ class MatchDB:
                             users["users"][id]["name"] = name
                             users["users"][id]["birthday"] = birthday
                             users["users"][id]["id"] = id
-
-                            print(users["users"][id])
                         matches["matches"][key]["shooter"] = id
                     matches["version"] = 2
                     with open("./db/users.json", "w") as out_file:

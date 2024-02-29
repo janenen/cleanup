@@ -59,9 +59,6 @@ class Competitions(DefaultFrame):
         self.showing = "entries"
         self.competition_listbox.delete("0", "end")
         for entry in self.competition.entries:
-            print(entry)
-            print(self.matches[entry].shooter)
-            # print(self.users[self.matches[entry].shooter])
             self.competition_listbox.insert(
                 "end", self.users[self.matches[entry].shooter].name
             )

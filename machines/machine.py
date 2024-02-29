@@ -85,7 +85,6 @@ class ReadingThread(Thread):
             raise ReadingNotAvailable
 
     def is_finished(self):
-        print(f"is alive: {self.is_alive()}, msgs: {self._messages}")
         return not self.is_alive() and not self._messages
 
     def get_result(self) -> list[Shot]:

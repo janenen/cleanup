@@ -33,7 +33,6 @@ class ReadingFrame(DefaultFrame):
         if self.reader:
             self.reader.shutdown = True
         self.stopped = True
-        print("stop")
 
     def actionStart(self):
         machine = self.source
@@ -43,7 +42,6 @@ class ReadingFrame(DefaultFrame):
         self.container.update()
         try:
             if self.current_match:
-                print("Continue Match")
                 self.type_of_target = self.current_match.type_of_target
                 self.redraw_target()
                 for shot in self.current_match.shots:
@@ -51,7 +49,6 @@ class ReadingFrame(DefaultFrame):
 
                 machine.config(rest=self.competition.count - self.current_match.anzahl)
             else:
-                print("New Match")
                 machine.config()  # config for the rest of series or default
             config_success = True
         except MachineException as e:

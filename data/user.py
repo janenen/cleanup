@@ -91,7 +91,6 @@ class UserDB:
         with open(file, "r") as oldfile:
             users = json.load(oldfile)
         for key in users["users"].keys():
-            print(users["users"][key]["shooter"])
             db.add_user(
                 user=User(
                     name=users["users"][key]["shooter"]["name"],

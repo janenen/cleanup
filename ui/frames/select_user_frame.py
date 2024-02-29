@@ -89,18 +89,16 @@ class SelectUserFrame(DefaultFrame):
         self.reset()
 
     def select_from_active_matches(self):
-        print("callback")
         self.edit_shooter = False
         self.create_new_user = False
         self.edit_button["state"] = "disabled"
         self.home["state"] = "disabled"
         self.guest["state"] = "disabled"
-        self.name_label.config(text=self.user.name if self.user else "Nope")
+        self.name_label.config(text=self.users[self.user].name if self.user else "Nope")
         self.club_button["state"] = "disabled"
         self.team_button["state"] = "disabled"
         self.club_label.config(text=self.club.name if self.club else "-")
         self.team_label.config(text=self.team.name if self.team else "-")
-        print(self.current_match)
         self.activate_ok_button()
         self.activate_back_button()
 
