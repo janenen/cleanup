@@ -9,7 +9,8 @@ import tkinter.ttk as ttk
 from typing import TYPE_CHECKING
 
 from data.competition import Competition
-from data.match import RADIUS_DICT, Match
+from data.match import Match
+from ui.utils.target import TargetCanvas
 
 if TYPE_CHECKING:
     from ui.frames.control_frame import ControlFrame
@@ -123,12 +124,7 @@ class ResultVisualisationFrame(ttk.Frame):
         self.test_font = Font(self, "Helvetica")
         self.test_font.configure(size=-int(self.width / 16), weight="bold")
 
-        self.canvas = tk.Canvas(
-            self,
-            bg="white",
-            height=self.width,
-            width=self.width,
-        )
+        self.canvas = TargetCanvas(self, self.width)
 
         self.canvas.grid(row=0, column=0)
         self.info_canvas = tk.Canvas(
@@ -180,107 +176,5 @@ class ResultVisualisationFrame(ttk.Frame):
         self.update_frame()
 
     def update_frame(self):
-        self.draw_target()
-        self.redraw_shots()
-
-    def draw_target(self):
-        self.canvas.delete("ring")
-        radiusTen = RADIUS_DICT[self.match.type_of_target][0]
-        incrementRing = RADIUS_DICT[self.match.type_of_target][2]
-        radiusBlack = RADIUS_DICT[self.match.type_of_target][3]
-        w = 2 * (radiusTen + 9 * incrementRing)
-        scalefactor = self.width / w
-        self.canvas.create_oval(
-            (-radiusBlack) * scalefactor + self.width / 2,
-            radiusBlack * scalefactor + self.width / 2,
-            radiusBlack * scalefactor + self.width / 2,
-            -radiusBlack * scalefactor + self.width / 2,
-            fill="black",
-            tag="ring",
-        )
-
-        self.ringcircles = [
-            self.canvas.create_oval(
-                -(i * incrementRing + radiusTen) * scalefactor + self.width / 2,
-                (i * incrementRing + radiusTen) * scalefactor + self.width / 2,
-                (i * incrementRing + radiusTen) * scalefactor + self.width / 2,
-                -(i * incrementRing + radiusTen) * scalefactor + self.width / 2,
-                outline="white" if i * incrementRing < radiusBlack else "black",
-                tag="ring",
-            )
-            for i in range(10)
-        ]
-        self.canvas.delete("number")
-        for i in range(1, 9):
-            radius = (i * incrementRing + radiusTen) + (incrementRing / 2)
-            self.canvas.create_text(
-                self.width / 2 + radius * scalefactor,
-                self.width / 2,
-                fill="white" if radius < radiusBlack else "black",
-                font=self.number_font,
-                text=str(9 - i),
-                tag="number",
-            )
-            self.canvas.create_text(
-                self.width / 2 - radius * scalefactor,
-                self.width / 2,
-                fill="white" if radius < radiusBlack else "black",
-                font=self.number_font,
-                text=str(9 - i),
-                tag="number",
-            )
-            self.canvas.create_text(
-                self.width / 2,
-                self.width / 2 + radius * scalefactor,
-                fill="white" if radius < radiusBlack else "black",
-                font=self.number_font,
-                text=str(9 - i),
-                tag="number",
-            )
-            self.canvas.create_text(
-                self.width / 2,
-                self.width / 2 - radius * scalefactor,
-                fill="white" if radius < radiusBlack else "black",
-                font=self.number_font,
-                text=str(9 - i),
-                tag="number",
-            )
-
-    def redraw_shots(self):
-        self.canvas.delete("shot")
-        radiusCalibre = RADIUS_DICT[self.match.type_of_target][4]
-        radiusTen = RADIUS_DICT[self.match.type_of_target][0]
-        incrementRing = RADIUS_DICT[self.match.type_of_target][2]
-        w = 2 * (radiusTen + 9 * incrementRing)
-        scalefactor = self.width / w
-        for shot in self.match.shots:
-            self.canvas.create_oval(
-                (shot.x * 100 - radiusCalibre) * scalefactor + self.width / 2,
-                -(shot.y * 100 - radiusCalibre) * scalefactor + self.width / 2,
-                (shot.x * 100 + radiusCalibre) * scalefactor + self.width / 2,
-                -(shot.y * 100 + radiusCalibre) * scalefactor + self.width / 2,
-                fill=(
-                    "green"
-                    if not shot == self.match.shots[-1]
-                    else (
-                        "red"
-                        if shot.ringe_ganz == 10
-                        else ("yellow" if shot.ringe_ganz == 9 else "blue")
-                    )
-                ),
-                tag="shot",
-            )
-        shotbox = self.canvas.bbox("shot")
-        allbox = self.canvas.bbox("ring")
-        size = (allbox[2] + 1) - (allbox[0] - 1)
-        rect = [shotbox[i] - size // 2 for i in range(len(shotbox))]
-        r = max(abs(min(rect)), max(rect))
-        scale = (size / 2) / r
-        self.canvas.scale(
-            "all",
-            self.width / 2,
-            self.width / 2,
-            scale,
-            scale,
-        )
-        self.number_font.configure(size=int(-0.8 * incrementRing * scalefactor * scale))
+        self.canvas.draw_target(self.match.type_of_target)
+        self.canvas.redraw_shots(self.match)

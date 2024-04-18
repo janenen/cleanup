@@ -110,11 +110,8 @@ class OutputFrame(DefaultFrame):
         )
         for s in self.current_match:
             csvfile.write(
-                "{};{};{};{}\r".format(
-                    str(s.ringe).replace(".", ","),
-                    str(s.teiler).replace(".", ","),
-                    str(s.x).replace(".", ","),
-                    str(s.y).replace(".", ","),
+                f"{str(s.ringe)};{str(s.teiler)};{str(s.x)};{str(s.y)}\r".replace(
+                    ".", ","
                 )
             )
         csvfile.close()
@@ -228,44 +225,40 @@ class OutputFrame(DefaultFrame):
 
         if self.competition.decimal:
             pdf.set_font("Helvetica", "B", 10)
-            pdf.text(35, 50, "{:.1f}".format(self.current_match.summe))
+            pdf.text(35, 50, f"{self.current_match.summe:.1f}")
             pdf.text(
                 35,
                 60,
-                "{:.2f}".format(self.current_match.summe / self.current_match.anzahl),
+                f"{self.current_match.summe / self.current_match.anzahl:.2f}",
             )
             pdf.set_font("Helvetica", "", 10)
-            pdf.text(35, 55, "{:d}".format(self.current_match.summe_ganz))
+            pdf.text(35, 55, f"{self.current_match.summe_ganz:d}")
             pdf.text(
                 35,
                 65,
-                "{:.2f}".format(
-                    self.current_match.summe_ganz / self.current_match.anzahl
-                ),
+                f"{self.current_match.summe_ganz / self.current_match.anzahl:.2f}",
             )
         else:
             pdf.set_font("Helvetica", "B", 10)
-            pdf.text(35, 50, "{:d}".format(self.current_match.summe_ganz))
+            pdf.text(35, 50, f"{self.current_match.summe_ganz:d}")
             pdf.text(
                 35,
                 60,
-                "{:.2f}".format(
-                    self.current_match.summe_ganz / self.current_match.anzahl
-                ),
+                f"{self.current_match.summe_ganz / self.current_match.anzahl:.2f}",
             )
             pdf.set_font("Helvetica", "", 10)
-            pdf.text(35, 55, "{:.1f}".format(self.current_match.summe))
+            pdf.text(35, 55, f"{self.current_match.summe:.1f}")
             pdf.text(
                 35,
                 65,
-                "{:.2f}".format(self.current_match.summe / self.current_match.anzahl),
+                f"{self.current_match.summe / self.current_match.anzahl:.2f}",
             )
 
         pdf.set_font("Helvetica", "B", 10)
-        pdf.text(35, 70, "{:.1f}".format(self.current_match.best.teiler))
+        pdf.text(35, 70, f"{self.current_match.best.teiler:.1f}")
         pdf.set_font("Helvetica", "", 10)
-        pdf.text(75, 50, "{:.1f}".format(self.current_match.ablageRL))
-        pdf.text(75, 55, "{:.1f}".format(self.current_match.ablageHT))
+        pdf.text(75, 50, f"{self.current_match.ablageRL:.1f}")
+        pdf.text(75, 55, f"{self.current_match.ablageHT:.1f}")
 
     def __write_series(self, pdf, directory):
         abstSerie = 35
@@ -383,63 +376,53 @@ class OutputFrame(DefaultFrame):
                 pdf.text(
                     130,
                     abstSerie * i + start_y + 5 + 15,
-                    (
-                        "{:.1f}".format(sum40)
-                        if self.competition.decimal
-                        else "{:d}".format(sum40)
-                    ),
+                    (f"{sum40:.1f}" if self.competition.decimal else f"{sum40:d}"),
                 )
                 pdf.text(
                     130,
                     abstSerie * i + start_y + 5 + 20,
-                    "{:.2f}".format(sum40 / 40),
+                    f"{sum40 / 40:.2f}",
                 )
             if self.competition.decimal:
                 pdf.set_font("Helvetica", "B", 10)
                 pdf.text(
                     35,
                     abstSerie * i + start_y + 5 + 10,
-                    "{:.1f}".format(self.current_match.series[i + series_offset].summe),
+                    f"{self.current_match.series[i + series_offset].summe:.1f}",
                 )
                 pdf.set_font("Helvetica", "", 10)
                 pdf.text(
                     35,
                     abstSerie * i + start_y + 5 + 15,
-                    "{:d}".format(
-                        self.current_match.series[i + series_offset].summe_ganz
-                    ),
+                    f"{self.current_match.series[i + series_offset].summe_ganz:d}",
                 )
             else:
                 pdf.set_font("Helvetica", "B", 10)
                 pdf.text(
                     35,
                     abstSerie * i + start_y + 5 + 10,
-                    "{:d}".format(
-                        self.current_match.series[i + series_offset].summe_ganz
-                    ),
+                    f"{self.current_match.series[i + series_offset].summe_ganz:d}",
                 )
                 pdf.set_font("Helvetica", "", 10)
                 pdf.text(
                     35,
                     abstSerie * i + start_y + 5 + 15,
-                    "{:.1f}".format(self.current_match.series[i + series_offset].summe),
+                    f"{self.current_match.series[i + series_offset].summe:.1f}",
                 )
             pdf.text(
                 35,
                 abstSerie * i + start_y + 5 + 20,
-                "{:.1f}".format(
-                    self.current_match.series[i + series_offset].best.teiler
-                ),
+                f"{self.current_match.series[i + series_offset].best.teiler:.1f}",
             )
             pdf.text(
                 70,
                 abstSerie * i + start_y + 5 + 15,
-                "{:.1f}".format(self.current_match.series[i + series_offset].ablageRL),
+                f"{self.current_match.series[i + series_offset].ablageRL:.1f}",
             )
             pdf.text(
                 70,
                 abstSerie * i + start_y + 5 + 20,
-                "{:.1f}".format(self.current_match.series[i + series_offset].ablageHT),
+                f"{self.current_match.series[i + series_offset].ablageHT:.1f}",
             )
 
     def _draw_qr(self):
@@ -709,11 +692,8 @@ class PDFgen:
 
         outstr = f"""{match.date.replace(".","")}{match.type_of_target}"""
         for s in match:
-            line = "{}{}+{}+{}".format(
-                map_ring(str(s.ringe)),
-                str(s.teiler),
-                str(s.x),
-                str(s.y),
-            ).replace("+-", "-")
+            line = f"{map_ring(str(s.ringe))}{str(s.teiler)}+{str(s.x)}+{str(s.y)}".replace(
+                "+-", "-"
+            )
             outstr += line
         return outstr
